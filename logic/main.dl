@@ -26,6 +26,5 @@
 #include "memops.dl"
 #include "value_analysis.dl"
 
-
 //vulnerable detection
 #include "vulnerabilities.dl"
