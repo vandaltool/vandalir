@@ -15,8 +15,9 @@ double_free(IID, LEVEL, MESSAGE) :-
     is_vreg(VAR2),
     memequals(FID, VAR, FID, VAR2),
     LEVEL = "Vulnerability",
-    MESSAGE = "double free".
-    //cat("Double Free:  FID:", FID, " VREG:", VAR, " has already been freed here: FID:", FID2, " VREG:", VAR2)
+    MESSAGE = cat("Double Free:  FID:", to_string(FID), " VREG:", to_string(VAR),
+                  " has already been freed here: FID:", to_string(FID),
+                  " VREG:", to_string(VAR2)).
 
 //case other basic block, but path from one basic block to other exists
 double_free(IID, LEVEL, MESSAGE) :-
@@ -38,5 +39,6 @@ double_free(IID, LEVEL, MESSAGE) :-
     is_vreg(VAR2),
     memequals(FID, VAR, FID2, VAR2),
     LEVEL = "Vulnerability",
-    MESSAGE = "double free".
-    //cat("Double Free:  FID:", FID, " VREG:", VAR, " has already been freed here: FID:", FID2, " VREG:", VAR2)
+    MESSAGE = cat("Double Free:  FID:", to_string(FID), " VREG:", to_string(VAR),
+                  " has already been freed here: FID:", to_string(FID2),
+                  " VREG:", to_string(VAR2)).

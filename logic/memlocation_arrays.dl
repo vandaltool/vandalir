@@ -21,7 +21,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     !is_struct(BASETYPE),
     // limit evaluated indices to those used by getelemeptr
     get_all_getelementptr_indices(NUM),
-    LOCATION = cat(cat(LOC, "."), to_string(NUM)).
+    LOCATION = cat(LOC, ".", to_string(NUM)).
 
 // multi-dim arrays
 // stack allocations of array (all element).
@@ -90,7 +90,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     // NUM = SIZE-1,
     // limit evaluated indices to thouse used by getelemeptr
     get_all_getelementptr_indices(NUM),
-    LOCATION = cat(cat(LOC, "."), to_string(NUM)).
+    LOCATION = cat(LOC, ".", to_string(NUM)).
 
 
 // recursive helper function to enumerate alloca arrays
@@ -180,7 +180,7 @@ memlocation_multidim_array_enumerator(IID, LEVEL, LOC, STARTLOC) :-
     LEVEL = 0,
     // limit evaluated indices to thouse used by getelemeptr
     get_all_getelementptr_indices(I),
-    LOC = cat(cat(STARTLOC, "."), to_string(I)),
+    LOC = cat(STARTLOC, ".", to_string(I)),
     get_ith_operand(IID, LEVEL+2, ELEMENTS_IN_LEVEL),
     is_numeric(ELEMENTS_IN_LEVEL),
     I>=0,
@@ -198,7 +198,7 @@ memlocation_multidim_array_enumerator(IID, LEVEL, LOC, STARTLOC) :-
     anumber(LEVEL),
     // limit evaluated indices to thouse used by getelemeptr
     get_all_getelementptr_indices(I),
-    LOC = cat(cat(STARTLOC, "."), to_string(I)),
+    LOC = cat(STARTLOC, ".", to_string(I)),
     get_ith_operand(IID, LEVEL+2, ELEMENTS_IN_LEVEL),
     is_numeric(ELEMENTS_IN_LEVEL),
     I>=0,

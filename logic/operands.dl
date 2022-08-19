@@ -54,25 +54,26 @@ fid_or_none(VAL, FID) :-
 //    is_vreg(X),
 //    is_vreg(X),
 //    anumber(NUM),
-//    T = cat(cat(X, "."), to_string(NUM)).
+//    T = cat(X, ".", to_string(NUM)).
 // is_concatenated_location(T) :-
 //    is_concatenated_location(X),
 //    anumber(NUM),
 //    anumber(NUM2),
-//    T = cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)).
+//    T = cat(X, ".", to_string(NUM), ".", to_string(NUM2)).
 // is_concatenated_location(T) :-
 //    is_concatenated_location(X),
 //    anumber(NUM),
 //    anumber(NUM2),
 //    anumber(NUM3),
-//    T = cat(cat(cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)), "."), to_string(NUM3)).
+//    T = cat(X, ".", to_string(NUM), ".", to_string(NUM2), ".", to_string(NUM3)).
 // is_concatenated_location(T) :-
 //    is_concatenated_location(X),
 //    anumber(NUM),
 //    anumber(NUM2),
 //    anumber(NUM3),
 //    anumber(NUM4),
-//    T = cat(cat(cat(cat(cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)), "."), to_string(NUM3)), "."), to_string(NUM4)).
+//    T = cat(X, ".", to_string(NUM), ".", to_string(NUM2), ".", to_string(NUM3),
+//            ".", to_string(NUM4)).
 // is_concatenated_location(T) :-
 //    is_concatenated_location(X),
 //    anumber(NUM),
@@ -80,7 +81,8 @@ fid_or_none(VAL, FID) :-
 //    anumber(NUM3),
 //    anumber(NUM4),
 //    anumber(NUM5),
-//    T = cat(cat(cat(cat(cat(cat(cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)), "."), to_string(NUM3)), "."), to_string(NUM4)), "."), to_string(NUM5)).
+//    T = cat(X, ".", to_string(NUM), ".", to_string(NUM2), ".", to_string(NUM3),
+//            ".", to_string(NUM4), ".", to_string(NUM5)).
 
 // is location either a vreg or a concatenated location
 //.decl is_vreg_or_concatenated_location(type: symbol)

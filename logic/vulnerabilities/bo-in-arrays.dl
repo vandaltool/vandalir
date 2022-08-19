@@ -24,7 +24,8 @@ gep_index_too_big(IID, LEVEL, MESSAGE) :-
     !check_big(FID, BID, INDEX2VREG),
     LEVEL = "Vulnerability",
     ARRAYSIZE > 2,
-    MESSAGE = cat(cat(cat("possibly insufficient buffer size ", to_string(ARRAYSIZE), " detected for too big index access of ", to_string(INDEX2)))).
+    MESSAGE = cat("possibly insufficient buffer size ", to_string(ARRAYSIZE),
+                  " detected for too big index access of ", to_string(INDEX2)).
 
 
 .decl gep_index_too_small(instructionid: _instructionid, level: symbol, message: symbol)
@@ -41,7 +42,8 @@ gep_index_too_small(IID, LEVEL, MESSAGE) :-
     !check_small(FID, BID, INDEX2VREG),
     LEVEL = "Vulnerability",
     ARRAYSIZE > 2,
-    MESSAGE = cat(cat(cat("possibly insufficient buffer size ", to_string(ARRAYSIZE), " detected for too small index access (below zero) of ", to_string(INDEX2)))).
+    MESSAGE = cat("possibly insufficient buffer size ", to_string(ARRAYSIZE),
+                  " detected for too small index access (below zero) of ", to_string(INDEX2)).
 
 
 //check if upper bound size check exists

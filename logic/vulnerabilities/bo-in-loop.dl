@@ -46,7 +46,8 @@ oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
     IID = GEPIID,
     ARRAYSIZE > 2,
     LEVEL = "Vulnerability",
-    MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",to_string(MAXBOUNDARY)," and array size: ", to_string(ARRAYSIZE),".").
+    MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",
+                  to_string(MAXBOUNDARY), " and array size: ", to_string(ARRAYSIZE),".").
 
 // case head-controlled <=x boundary
 oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
@@ -84,7 +85,8 @@ oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
     IID = GEPIID,
 
     LEVEL = "Vulnerability",
-    MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",to_string(MAXBOUNDARY)," and array size: ", to_string(ARRAYSIZE),".").
+    MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",
+                  to_string(MAXBOUNDARY), " and array size: ", to_string(ARRAYSIZE),".").
 
 
 // detect duplicate variable increase

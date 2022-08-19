@@ -29,7 +29,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     CAT = cat("structAll~1~", BASETYPE),
     NUM >= 0, NUM < to_number(SIZE),
     anumber(NUM),
-    LOCATION = cat(cat(LOC, "."), to_string(NUM)).
+    LOCATION = cat(LOC, ".", to_string(NUM)).
 
 // subelements of structs
 
@@ -48,7 +48,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     to_number(OPSIZE) = 1,
     // limit evaluated indices to those used by getelemeptr
     get_all_getelementptr_indices(OPID),
-    LOCATION = cat(cat(LOCATIONSTRUCT, "."), to_string(OPID)),
+    LOCATION = cat(LOCATIONSTRUCT, ".", to_string(OPID)),
     CAT = "structIndex".
 
 // structIndex elements, that are structs => spawn structAll
@@ -66,7 +66,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     to_number(OPSIZE) = 1,
     // limit evaluated indices to those used by getelemeptr
     get_all_getelementptr_indices(OPID),
-    LOCATION = cat(cat(LOCATIONSTRUCT, "."), to_string(OPID)),
+    LOCATION = cat(LOCATIONSTRUCT, ".", to_string(OPID)),
     CAT = cat("structAll~1~", BASETYPE).
 
 // structIndex elements, that are arrays => spawn arrayAll
@@ -102,7 +102,7 @@ memlocation(FID, LOCATION, TYPE, CAT) :-
     to_number(OPSIZE) = 1,
     // limit evaluated indices to those used by getelemeptr
     get_all_getelementptr_indices(OPID),
-    LOCATION = cat(cat(LOCATIONSTRUCT, "."), to_string(OPID)),
+    LOCATION = cat(LOCATIONSTRUCT, ".", to_string(OPID)),
     CAT = "structIndex".
 
 // subelements of arrays

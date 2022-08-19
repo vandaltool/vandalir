@@ -213,7 +213,7 @@ get_gep_concatenated_memloc_str(IID, LEVEL, RES) :-
     get_gep_concatenated_memloc_str(IID, LEVEL-1, BASELOC),
     get_ith_operand(IID, LEVEL, NEWINDEX),
     is_numeric(NEWINDEX),
-    RES = cat(cat(BASELOC, "."), NEWINDEX).
+    RES = cat(BASELOC, ".", NEWINDEX).
 
 //case non-numeric operand, but can be evaluated via get_int_by_vreg
 get_gep_concatenated_memloc_str(IID, LEVEL, RES) :-
@@ -229,7 +229,7 @@ get_gep_concatenated_memloc_str(IID, LEVEL, RES) :-
     get_int_by_vreg(NEWINDEXNUMBER, FID, NEWINDEX),
     NEWINDEXNUMBERSTR = to_string(NEWINDEXNUMBER),
     is_numeric(NEWINDEXNUMBERSTR),
-    RES = cat(cat(BASELOC, "."), NEWINDEXNUMBERSTR).
+    RES = cat(BASELOC, ".", NEWINDEXNUMBERSTR).
 
 //case non-numeric operand, not evaluated
 //removed because only numeric operands are of interest
@@ -242,7 +242,7 @@ LEVEL<=MAXOP-1, //last operand is reserved for return type info
     get_ith_operand(IID, LEVEL, NEWINDEX),
     !is_numeric(NEWINDEX),
     is_vreg(NEWINDEX),
-    RES = cat(cat(BASELOC, "."), NEWINDEX).
+    RES = cat(BASELOC, ".", NEWINDEX).
 */
 
 

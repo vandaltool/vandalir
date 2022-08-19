@@ -551,7 +551,7 @@ get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID) :-
     argument(FID, ARGID, _, TYPE),
     get_relative_argid(FID, ARGID, ARGID_REL),
     ARGID_REL > 1,
-    ARGLIST = cat(cat(OLDARGLIST,", "), TYPE),
+    ARGLIST = cat(OLDARGLIST,", ", TYPE),
     get_arg_typelist_by_fid_rec(OLDARGLIST, FID, ARGID-1).
 
 

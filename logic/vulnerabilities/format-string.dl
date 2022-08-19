@@ -16,7 +16,9 @@ is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
     is_vreg(FSLOC),
     is_memloc_with_userinput(FID, FSLOC),
     LEVEL = "Vulnerability",
-    MESSAGE = cat(FNAME," detected and user input is provided to its #", to_string(RELARGNUM), " argument which may indicate a format string vulnerability").
+    MESSAGE = cat(FNAME," detected and user input is provided to its #",
+                  to_string(RELARGNUM),
+                  " argument which may indicate a format string vulnerability").
 
 // issue warning if the minimal number of regular arguments is not met and
 // critical arg(containing the formatstring) seems to be generated dynamically
