@@ -6,16 +6,16 @@ import pathlib
 
 
 def parseArgs(parser):
-    parser.add_argument('file', action='store', help='file that should be analyzed')
-    parser.add_argument('-c', action='store_true', dest='compile', default=False, help='use compilation in Soufflé')
-    parser.add_argument('-pc', action='store_true', dest='previous_compile', default=False, help='use previous compiled version')
-    parser.add_argument('-p', action='store_true', dest='profile', default=False, help='use the Soufflé profiler')
-    parser.add_argument('-f', action='store', dest='facts_dir', default="facts",
-                        help='specify facts directory (default: facts)')
-    parser.add_argument('-o', action='store', dest='output_dir', default="output",
-                        help='specify output directory (default: output)')
-    parser.add_argument('-j', action='store', dest='thread_count', default="4",
-                        help='specify how many threads Soufflé may use (default: 4)')
+    parser.add_argument("file", action="store", help="file that should be analyzed")
+    parser.add_argument("-c", action="store_true", dest="compile", default=False, help="use compilation in Soufflé")
+    parser.add_argument("-pc", action="store_true", dest="previous_compile", default=False, help="use previous compiled version")
+    parser.add_argument("-p", action="store_true", dest="profile", default=False, help="use the Soufflé profiler")
+    parser.add_argument("-f", action="store", dest="facts_dir", default="facts",
+                        help="specify facts directory (default: facts)")
+    parser.add_argument("-o", action="store", dest="output_dir", default="output",
+                        help="specify output directory (default: output)")
+    parser.add_argument("-j", action="store", dest="thread_count", default="4",
+                        help="specify how many threads Soufflé may use (default: 4)")
 
 def ensureDirectoryExists(name):
     if(not os.path.isdir("./"+name)):
@@ -51,7 +51,7 @@ def parse(filepath, facts_dir):
             command += "-o "+facts_dir
         subprocess.call(command, shell=True)
     else:
-        print("Unsupported file type. File extension needs to be .c, .bc or .ll")
+        raise RuntimeError("Unsupported file type. File extension needs to be .c, .bc or .ll")
 
 
 def run(filepath, compile, previous_compile, profile, facts_dir, output_dir, thread_count):
@@ -98,15 +98,20 @@ def run(filepath, compile, previous_compile, profile, facts_dir, output_dir, thr
     print("Execution finished output written to output directory")
 
 def set_functors_path():
-    # setup LD_LIBRARY_PATH
+    # setup LD_LIBRARY_PATH/DYLD_LIBRARY_PATH
     absPath = str(pathlib.Path(__file__).parent.absolute())
-    os.environ['LD_LIBRARY_PATH'] = absPath+"/"+"logic/functors/"
-    # print(absPath+"/"+"logic/functors/")
+    if sys.platform == "linux" or sys.platform == "linux2":
+        os.environ["LD_LIBRARY_PATH"] = absPath+"/"+"logic/functors/"
+    elif sys.platform == "darwin":
+        os.environ["DYLD_LIBRARY_PATH"] = absPath+"/"+"logic/functors/"
+    else:
+        raise RuntimeError("Unsupported OS: " + sys.platform)
 
 def compile_functors():
-    command = "./make.sh "
+    print("Compiling Functors...")
+    command = "make "
     subprocess.call(command, shell=True, cwd="logic/functors/")
-    # print("Functors compiled.")
+    print("Functors compiled.")
     set_functors_path()
 
 def compile_datalog(thread_count=4):
@@ -135,7 +140,7 @@ def main():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run Datalog analysis on supplied file')
+    parser = argparse.ArgumentParser(description="Run Datalog analysis on supplied file")
     parseArgs(parser)
     args = parser.parse_args(sys.argv[1:])
     main()

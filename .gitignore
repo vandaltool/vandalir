@@ -10,3 +10,4 @@ profile
 /test/additional
 /test/juliet_backup
 /util
+/logic/functors/*.so

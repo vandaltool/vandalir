@@ -88,14 +88,19 @@ def run_file(cwe, badgood, filename, id, total, processes):
 
 
 def set_functors_path():
-    # setup LD_LIBRARY_PATH
+    # setup LD_LIBRARY_PATH/DYLD_LIBRARY_PATH
     absPath = str(pathlib.Path(__file__).parent.absolute())
-    os.environ['LD_LIBRARY_PATH'] = absPath+"/"+"logic/functors/"
-    # print(absPath+"/"+"logic/functors/")
+    if sys.platform == "linux" or sys.platform == "linux2":
+        os.environ["LD_LIBRARY_PATH"] = absPath+"/"+"logic/functors/"
+    elif sys.platform == "darwin":
+        os.environ["DYLD_LIBRARY_PATH"] = absPath+"/"+"logic/functors/"
+    else:
+        raise RuntimeError("Unsupported OS: " + sys.platform)
 
 
 def compile_functors():
-    command = "./make.sh "
+    print("Compiling Functors...")
+    command = "make "
     subprocess.call(command, shell=True, cwd="logic/functors/")
     print("Functors compiled.")
     set_functors_path()
@@ -180,11 +185,11 @@ def run_cwe(cwe, badgood):
     # create final report
     full_report_str = "".join(results)
     if(badgood == "bad"):
-        with open(juliet_report_path+'jreport_cwe'+cwe+'_vulns.csv', mode='w') as report:
+        with open(juliet_report_path+"jreport_cwe"+cwe+"_vulns.csv", mode="w") as report:
             report.write(full_report_str)
         false_negative_list = np.setdiff1d(file_list, found_list)
         false_negatives_str = "\n".join(false_negative_list)
-        with open(juliet_report_path+'jreport_cwe'+cwe+'_fn.csv', mode='w') as report:
+        with open(juliet_report_path+"jreport_cwe"+cwe+"_fn.csv", mode="w") as report:
             report.write(false_negatives_str)
 
         num_total = len(file_list)
@@ -195,7 +200,7 @@ def run_cwe(cwe, badgood):
         return(num_total, num_vulns, num_false_neg, num_true_positives, num_false_positives)
 
     elif(badgood == "good"):
-        with open(juliet_report_path+'jreport_cwe'+cwe+'_fp.csv', mode='w') as report:
+        with open(juliet_report_path+"jreport_cwe"+cwe+"_fp.csv", mode="w") as report:
             report.write(full_report_str)
 
         num_total = len(file_list)
