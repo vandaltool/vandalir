@@ -11,7 +11,7 @@ memtype(MEM) :- type(MEM).
 
 //stack allocations of one element.
 memlocation(FID, LOC, TYPE, CAT) :- instruction(BID, IID, LOC, OPC), block(FID, BID, _),
-OPC = "alloca", CAT = "stack",  
+OPC = "alloca", CAT = "stack",
 get_first_operand(IID, TYPE), is_numeric(SIZE), to_number(SIZE) = 1,
 !is_struct(TYPE),
 get_second_operand(IID, SIZE).
@@ -19,7 +19,7 @@ get_second_operand(IID, SIZE).
 
 
 //global allocations of one element
-memlocation(FID, LOC, TYPE, CAT) :- 
+memlocation(FID, LOC, TYPE, CAT) :-
 global(LOC, _, TYPE, SIZE, _),
 SIZE = "1",
 FID = -1, CAT = "global".
@@ -45,33 +45,33 @@ memlocation(FID, LOC, TYPE, CAT) :- instruction(BID, IID, VREG, OPC), block(FID,
 OPC != "load", OPC != "alloca", OPC != "getelementptr", !is_heap_allocation_call(IID),
 VREG != "%-1",
 LOC = VREG,
-CAT = "vreg", 
-TYPE = "unknown". 
+CAT = "vreg",
+TYPE = "unknown".
 
 //vreg load
 memlocation(FID, LOC, TYPE, CAT) :- instruction(BID, IID, VREG, OPC), block(FID, BID, _),
 OPC = "load",
 VREG != "%-1",
 LOC = VREG,
-CAT = "vreg", 
+CAT = "vreg",
 get_first_operand(IID, TYPE).
 
 //vreg getelementptr
 memlocation(FID, LOC, TYPE, CAT) :- instruction(BID, _, VREG, OPC), block(FID, BID, _),
 OPC = "getelementptr",
 LOC = VREG,
-CAT = "vreg", 
+CAT = "vreg",
 TYPE = "unknown".
 
 //heap allocations
 memlocation(FID, LOC, TYPE, CAT) :- instruction(BID, IID, LOC, _), block(FID, BID, _),
-is_heap_allocation_call(IID), CAT = "heap", 
+is_heap_allocation_call(IID), CAT = "heap",
 TYPE = "i8*".
 
 //function arguments
 
-memlocation(FID, LOC, TYPE, CAT) :- 
-argument(FID, _, LOC, TYPE), 
+memlocation(FID, LOC, TYPE, CAT) :-
+argument(FID, _, LOC, TYPE),
 CAT = "stack"
 .
 
@@ -97,7 +97,7 @@ get_int_by_vreg(INDEX, FID, VAL)
 .
 
 .decl get_all_getelementptr_indices_str(index: symbol)
-get_all_getelementptr_indices_str(SYM) :- 
-is_numeric(SYM), 
-RES = to_number(SYM), 
+get_all_getelementptr_indices_str(SYM) :-
+is_numeric(SYM),
+RES = to_number(SYM),
 get_all_getelementptr_indices(RES).

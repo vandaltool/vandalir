@@ -2,31 +2,31 @@
 
 .decl get_first_operand(instructionid: _instructionid, operandvalue: symbol)
 //.output get_first_operand(delimeter=",")
-get_first_operand(IID, VAL) :- 
-operand(IID, OID1, OV1), 
+get_first_operand(IID, VAL) :-
+operand(IID, OID1, OV1),
 !operand(IID, OID1-1, _), VAL = OV1.
 
 .decl get_second_operand(instructionid: _instructionid, operandvalue: symbol)
 //.output get_second_operand(delimeter=",")
-get_second_operand(IID, VAL) :- 
+get_second_operand(IID, VAL) :-
 operand(IID, OID1, _), operand(IID, OID2, OV2),
 !operand(IID, OID1-1, _), OID2=OID1+1, VAL = OV2.
 
 .decl get_third_operand(instructionid: _instructionid, operandvalue: symbol)
 //.output get_third_operand(delimeter=",")
-get_third_operand(IID, VAL) :- 
+get_third_operand(IID, VAL) :-
 operand(IID, OID1, _), operand(IID, OID2, _), operand(IID, OID3, OV3),
 !operand(IID, OID1-1, _), OID2=OID1+1, OID3=OID2+1, VAL = OV3.
 
 .decl get_fourth_operand(instructionid: _instructionid, operandvalue: symbol)
 //.output get_fourth_operand(delimeter=",")
-get_fourth_operand(IID, VAL) :- 
+get_fourth_operand(IID, VAL) :-
 operand(IID, OID1, _), operand(IID, OID2, _), operand(IID, OID3, _), operand(IID, OID4, OV4),
 !operand(IID, OID1-1, _), OID2=OID1+1, OID3=OID2+1, OID4=OID3+1, VAL = OV4.
 
 .decl get_fifth_operand(instructionid: _instructionid, operandvalue: symbol)
 //.output get_fifth_operand(delimeter=",")
-get_fifth_operand(IID, VAL) :- 
+get_fifth_operand(IID, VAL) :-
 operand(IID, OID1, _), operand(IID, OID2, _), operand(IID, OID3, _), operand(IID, OID4, _), operand(IID, OID5, OV5),
 !operand(IID, OID1-1, _), OID2=OID1+1, OID3=OID2+1, OID4=OID3+1, OID5=OID4+1, VAL = OV5.
 
@@ -46,20 +46,20 @@ get_ith_operand_recursive(IID, OID, I, VAL) :- I>1, I=I2+1, operand(IID, OID, VA
 
 //get last operand
 .decl get_last_operand(instructionid: _instructionid, operandvalue: symbol)
-get_last_operand(IID, OV) :- 
+get_last_operand(IID, OV) :-
 operand(IID, OID, OV), !operand(IID, OID+1, _).
 
 //number of operands
 .decl get_num_operands(instructionid: _instructionid, operandscount: number)
 //.output get_num_operands(delimeter=",")
-get_num_operands(IID, COUNT) :- operand(IID, OID, _), !operand(IID, OID2, _), OID2 = OID-1, 
+get_num_operands(IID, COUNT) :- operand(IID, OID, _), !operand(IID, OID2, _), OID2 = OID-1,
 get_num_operands_recursive(IID, OID, COUNT).
 
 //recursive
 .decl get_num_operands_recursive(instructionid: _instructionid, operandid: _operandid, operandscount: number)
-get_num_operands_recursive(IID, OID, COUNT) :- operand(IID, OID, _), !operand(IID, OID2, _), 
+get_num_operands_recursive(IID, OID, COUNT) :- operand(IID, OID, _), !operand(IID, OID2, _),
 OID2 = OID+1, COUNT=1.
-get_num_operands_recursive(IID, OID, COUNT) :- operand(IID, OID, _), operand(IID, OID2, _), 
+get_num_operands_recursive(IID, OID, COUNT) :- operand(IID, OID, _), operand(IID, OID2, _),
 OID2 = OID+1, get_num_operands_recursive(IID, OID2, OLDCOUNT), COUNT = OLDCOUNT+1.
 
 
@@ -68,7 +68,7 @@ OID2 = OID+1, get_num_operands_recursive(IID, OID2, OLDCOUNT), COUNT = OLDCOUNT+
 //get last instruction of block
 .decl last_instruction_in_block(blockid: _blockid, instructionid: _instructionid)
 //.output last_instruction_in_block
-last_instruction_in_block(BID, IID) :- 
+last_instruction_in_block(BID, IID) :-
 instruction(BID, IID, _, _),
 IID = max IIDNUM : instruction(BID, IIDNUM, _, _)
 .
@@ -161,17 +161,17 @@ is_X_call_instruction(FNAME, IID) :- get_function_for_call_instruction(FNAME, II
 //.output get_function_for_call_instruction(delimiter=",")
 
 //regular call instruction (no function pointer)
-get_function_for_call_instruction(NAME, IID) :- 
+get_function_for_call_instruction(NAME, IID) :-
 is_call_instruction(IID),
 get_last_operand(IID, NAME),
 !is_vreg(NAME).
 
 //call to function pointer
-get_function_for_call_instruction(NAME, IID) :- 
+get_function_for_call_instruction(NAME, IID) :-
 is_call_instruction(IID),
 get_last_operand(IID, VREG),
 is_vreg(VREG),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 block(FID, BID, _),
 memequals(FID, VREG, -1, GLOBNAME),
 NAME = substr(GLOBNAME, 1, strlen(GLOBNAME))
@@ -218,7 +218,7 @@ is_store_instruction(IID) :- instruction(_, IID, _, OPC), OPC = "store".
 .decl get_store_pointer_by_iid(functionid: _functionid, location: symbol, instructionid: _instructionid)
 //.output get_store_pointer_by_iid
 //case vreg
-get_store_pointer_by_iid(FID, VAL, IID) :- 
+get_store_pointer_by_iid(FID, VAL, IID) :-
 instruction(BID, IID, _, "store"),
 get_fourth_operand(IID, VAL),
 is_vreg(VAL),
@@ -227,7 +227,7 @@ block(FID, BID, _)
 .
 
 //case global
-get_store_pointer_by_iid(FID, VAL, IID) :- 
+get_store_pointer_by_iid(FID, VAL, IID) :-
 is_store_instruction(IID),
 get_fourth_operand(IID, VAL),
 !is_vreg(VAL),
@@ -293,8 +293,8 @@ get_num_operands(IID, OPCOUNT), SIZE = OPCOUNT-1.
 
 //get only heap allocation calls
 .decl is_heap_allocation_call(instructionid: _instructionid)
-is_heap_allocation_call(IID) :- 
-is_call_instruction(IID), 
+is_heap_allocation_call(IID) :-
+is_call_instruction(IID),
 get_last_operand(IID, FNAME),
 heap_allocation_instruction(FNAME).
 
@@ -312,16 +312,16 @@ heap_allocation_instruction(INS) :- INS = "realloc".
 //calculate relative argument id from fid and absolute argument id
 .decl get_relative_argid(functionid: _functionid, argid: _argumentid, argid_relative: number)
 //.output get_relative_argid
-get_relative_argid(FID, ARGID, ARGID_REL) :- 
-argument(FID, ARGID, _, _), 
-ARGID2=ARGID-1, 
-!argument(FID, ARGID2, _, _), 
+get_relative_argid(FID, ARGID, ARGID_REL) :-
+argument(FID, ARGID, _, _),
+ARGID2=ARGID-1,
+!argument(FID, ARGID2, _, _),
 ARGID_REL = 1.
 
-get_relative_argid(FID, ARGID, ARGID_REL) :- 
-argument(FID, ARGID, _, _), 
-argument(FID, ARGID2, _, _), 
-ARGID2+1=ARGID, 
+get_relative_argid(FID, ARGID, ARGID_REL) :-
+argument(FID, ARGID, _, _),
+argument(FID, ARGID2, _, _),
+ARGID2+1=ARGID,
 get_relative_argid(FID, ARGID2, ARGID2_REL),
 ARGID_REL = ARGID2_REL+1.
 
@@ -336,8 +336,8 @@ get_num_of_arguments_by_fname(NUM, FNAME) :- NUM = count : {argument(FID, _, _, 
 //get list of argumenttypes
 .decl get_arg_typelist_by_fid(argtypelist: symbol, functionid: _functionid)
 //.output get_arg_typelist_by_fid
-get_arg_typelist_by_fid(ARGLIST, FID) :- 
-function(FID, _, _, _), 
+get_arg_typelist_by_fid(ARGLIST, FID) :-
+function(FID, _, _, _),
 get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID),
 get_relative_argid(FID, ARGID, ARGID_REL),
 get_num_of_arguments_by_fid(ARGNUM, FID),
@@ -346,16 +346,16 @@ ARGNUM = ARGID_REL
 
 //recursive helper to get list of argumenttypes
 .decl get_arg_typelist_by_fid_rec(argtypelist: symbol, functionid: _functionid, argid: _argumentid)
-get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID) :- 
-function(FID, _, _, _), 
+get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID) :-
+function(FID, _, _, _),
 argument(FID, ARGID, _, TYPE),
 get_relative_argid(FID, ARGID, ARGID_REL),
 ARGID_REL = 1,
 ARGLIST = TYPE
 .
 
-get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID) :- 
-function(FID, _, _, _), 
+get_arg_typelist_by_fid_rec(ARGLIST, FID, ARGID) :-
+function(FID, _, _, _),
 argument(FID, ARGID, _, TYPE),
 get_relative_argid(FID, ARGID, ARGID_REL),
 ARGID_REL > 1,

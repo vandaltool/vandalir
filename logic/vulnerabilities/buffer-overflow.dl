@@ -13,10 +13,10 @@ buffer_overflow(IID, LEVEL, MESSAGE) :- is_vulnerable_strncat_call_instruction(I
 
 //strncpy vulnerable to bo
 .decl is_vulnerable_strncpy_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_strncpy_call_instruction(IID, LEVEL, MESSAGE) :- is_strncpy_call_instruction(IID), 
+is_vulnerable_strncpy_call_instruction(IID, LEVEL, MESSAGE) :- is_strncpy_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, OV1), get_third_operand(IID, N), 
-get_buffsize_by_vreg(DEST_SIZE, FID, OV1), 
+get_first_operand(IID, OV1), get_third_operand(IID, N),
+get_buffsize_by_vreg(DEST_SIZE, FID, OV1),
 get_int_by_vreg(COPY_SIZE, FID, N),
 MESSAGE = cat(cat(cat("strncpy: possible insufficient buffer size ", to_string(DEST_SIZE)), " for n of size "), to_string(COPY_SIZE)),
 LEVEL = "Vulnerability",
@@ -25,10 +25,10 @@ DEST_SIZE < COPY_SIZE.
 
 //fgets vulnerable to bo
 .decl is_vulnerable_fgets_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_fgets_call_instruction(IID, LEVEL, MESSAGE) :- 
-is_fgets_call_instruction(IID), block(FID, BID, _), instruction(BID, IID, _, _), 
+is_vulnerable_fgets_call_instruction(IID, LEVEL, MESSAGE) :-
+is_fgets_call_instruction(IID), block(FID, BID, _), instruction(BID, IID, _, _),
 get_first_operand(IID, OV1), get_second_operand(IID, N),
-get_buffsize_by_vreg(DEST_SIZE, FID, OV1), 
+get_buffsize_by_vreg(DEST_SIZE, FID, OV1),
 get_int_by_vreg(COPY_SIZE, FID, N),
 DEST_SIZE > 2,//this eliminates many false positives
 DEST_SIZE < COPY_SIZE,
@@ -37,12 +37,12 @@ LEVEL = "Vulnerability".
 
 //snprintf vulnerable to bo
 .decl is_vulnerable_snprintf_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_snprintf_call_instruction(IID, LEVEL, MESSAGE) :- 
+is_vulnerable_snprintf_call_instruction(IID, LEVEL, MESSAGE) :-
 is_X_call_instruction("snprintf", IID),
-block(FID, BID, _), instruction(BID, IID, _, _), 
-get_first_operand(IID, DEST), 
+block(FID, BID, _), instruction(BID, IID, _, _),
+get_first_operand(IID, DEST),
 get_second_operand(IID, N),
-get_buffsize_by_vreg(DEST_SIZE, FID, DEST), 
+get_buffsize_by_vreg(DEST_SIZE, FID, DEST),
 get_int_by_vreg(COPY_SIZE, FID, N),
 DEST_SIZE > 2,//this eliminates many false positives
 DEST_SIZE < COPY_SIZE,
@@ -56,10 +56,10 @@ MESSAGE = cat(cat(cat("snprintf: possible insufficient buffer size ", to_string(
 //.output is_vulnerable_sprintf_call_instruction
 //case %str in format string, no other %
 //TODO: add case with non numeric GLOBSIZESTR e.g. (2x12)
-is_vulnerable_sprintf_call_instruction(IID, LEVEL, MESSAGE) :- 
+is_vulnerable_sprintf_call_instruction(IID, LEVEL, MESSAGE) :-
 is_X_call_instruction("sprintf", IID),
-block(FID, BID, _), instruction(BID, IID, _, _), 
-get_first_operand(IID, DEST), 
+block(FID, BID, _), instruction(BID, IID, _, _),
+get_first_operand(IID, DEST),
 get_third_operand(IID, SRC),
 //get_second_operand(IID, FORMATSTR_GEP),
 /*
@@ -85,10 +85,10 @@ MESSAGE = cat(cat(cat("sprintf(dest %s src): possible insufficient buffer size "
 //memcpy vulnerable to bo
 .decl is_vulnerable_memcpy_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
 //case default (char array)
-is_vulnerable_memcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_memcpy_call_instruction(IID), 
+is_vulnerable_memcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_memcpy_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
 get_first_operand(IID, DEST), get_third_operand(IID, N),
-DEST_SIZE = max DS : get_buffsize_by_vreg(DS, FID, DEST), 
+DEST_SIZE = max DS : get_buffsize_by_vreg(DS, FID, DEST),
 get_int_by_vreg(COPY_SIZE, FID, N),
 MESSAGE = cat(cat(cat("memcpy: possible insufficient buffer size ", to_string(DEST_SIZE)), " for n of size "), to_string(COPY_SIZE)),
 LEVEL = "Vulnerability",
@@ -96,10 +96,10 @@ DEST_SIZE > 2,//this eliminates many false positives
 DEST_SIZE < COPY_SIZE.
 
 //case src=size=maxint
-is_vulnerable_memcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_memcpy_call_instruction(IID), 
+is_vulnerable_memcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_memcpy_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
 get_second_operand(IID, SRC), get_third_operand(IID, N),
-SRC_SIZE = max SS : get_buffsize_by_vreg(SS, FID, SRC), 
+SRC_SIZE = max SS : get_buffsize_by_vreg(SS, FID, SRC),
 get_int_by_vreg(COPY_SIZE, FID, N),
 COPY_SIZE = MAXINT,
 SRC_SIZE = MAXINT,
@@ -111,10 +111,10 @@ LEVEL = "Vulnerability"
 .decl is_vulnerable_memmove_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
 
 //case default (char array)
-is_vulnerable_memmove_call_instruction(IID, LEVEL, MESSAGE) :- is_memmove_call_instruction(IID), 
+is_vulnerable_memmove_call_instruction(IID, LEVEL, MESSAGE) :- is_memmove_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, DEST), get_third_operand(IID, N), 
-DEST_SIZE = max DS : get_buffsize_by_vreg(DS, FID, DEST), 
+get_first_operand(IID, DEST), get_third_operand(IID, N),
+DEST_SIZE = max DS : get_buffsize_by_vreg(DS, FID, DEST),
 get_int_by_vreg(COPY_SIZE, FID, N),
 MESSAGE = cat(cat(cat("memmove: possible insufficient buffer size ", to_string(DEST_SIZE)), " for n of size "), to_string(COPY_SIZE)),
 LEVEL = "Vulnerability",
@@ -123,10 +123,10 @@ DEST_SIZE < COPY_SIZE.
 
 //strcpy vulnerable to bo
 .decl is_vulnerable_strcpy_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_strcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_strcpy_call_instruction(IID), 
+is_vulnerable_strcpy_call_instruction(IID, LEVEL, MESSAGE) :- is_strcpy_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, DEST), get_second_operand(IID, SRC), 
-get_buffsize_by_vreg(DEST_SIZE, FID, DEST), 
+get_first_operand(IID, DEST), get_second_operand(IID, SRC),
+get_buffsize_by_vreg(DEST_SIZE, FID, DEST),
 get_buffsize_by_vreg(SRC_SIZE, FID, SRC),
 MESSAGE = cat(cat(cat(cat("strcpy: possible insufficient buffer size ", to_string(DEST_SIZE)), " for copy of "), to_string(SRC_SIZE)), " sized buffer"),
 LEVEL = "Vulnerability",
@@ -136,10 +136,10 @@ DEST_SIZE < SRC_SIZE
 
 //wscpy vulnerable to bo
 .decl is_vulnerable_wscpy_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_wscpy_call_instruction(IID, LEVEL, MESSAGE) :- is_wscpy_call_instruction(IID), 
+is_vulnerable_wscpy_call_instruction(IID, LEVEL, MESSAGE) :- is_wscpy_call_instruction(IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, DEST), get_second_operand(IID, SRC), 
-get_buffsize_by_vreg(DEST_SIZE, FID, DEST), 
+get_first_operand(IID, DEST), get_second_operand(IID, SRC),
+get_buffsize_by_vreg(DEST_SIZE, FID, DEST),
 get_buffsize_by_vreg(SRC_SIZE, FID, SRC),
 MESSAGE = cat(cat(cat(cat("wscpy: possible insufficient buffer size ", to_string(DEST_SIZE)), " for copy of "), to_string(SRC_SIZE)), " sized buffer"),
 LEVEL = "Vulnerability",
@@ -149,10 +149,10 @@ DEST_SIZE < SRC_SIZE.
 //strcat vulnerable to bo
 //length of source content unknown
 .decl is_vulnerable_strcat_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_strcat_call_instruction(IID, LEVEL, MESSAGE) :- is_X_call_instruction("strcat", IID), 
+is_vulnerable_strcat_call_instruction(IID, LEVEL, MESSAGE) :- is_X_call_instruction("strcat", IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, DEST), get_second_operand(IID, SRC), 
-get_buffsize_by_vreg(DEST_SIZE, FID, DEST), 
+get_first_operand(IID, DEST), get_second_operand(IID, SRC),
+get_buffsize_by_vreg(DEST_SIZE, FID, DEST),
 get_buffsize_by_vreg(SRC_SIZE, FID, SRC),
 MESSAGE = cat(cat(cat(cat("strcat: possible insufficient buffer size ", to_string(DEST_SIZE)), " for concatenation with "), to_string(SRC_SIZE)), " sized buffer"),
 LEVEL = "Vulnerability",
@@ -162,10 +162,10 @@ DEST_SIZE < SRC_SIZE.
 //strncat vulnerable to bo
 //length of source content unknown
 .decl is_vulnerable_strncat_call_instruction(instructionid: _instructionid, level: symbol, message: symbol)
-is_vulnerable_strncat_call_instruction(IID, LEVEL, MESSAGE) :- is_X_call_instruction("strncat", IID), 
+is_vulnerable_strncat_call_instruction(IID, LEVEL, MESSAGE) :- is_X_call_instruction("strncat", IID),
 block(FID, BID, _), instruction(BID, IID, _, _),
-get_first_operand(IID, DEST), get_third_operand(IID, N), 
-get_buffsize_by_vreg(DEST_SIZE, FID, DEST), 
+get_first_operand(IID, DEST), get_third_operand(IID, N),
+get_buffsize_by_vreg(DEST_SIZE, FID, DEST),
 get_int_by_vreg(CAT_SIZE, FID, N),
 MESSAGE = cat(cat(cat(cat("strncat: possible insufficient buffer size ", to_string(DEST_SIZE)), " for concatenation with "), to_string(CAT_SIZE)), ""),
 LEVEL = "Vulnerability",

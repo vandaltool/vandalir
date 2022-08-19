@@ -17,11 +17,11 @@ is_uneven(NUM) :- NUM%2=1, anumber(NUM).
 
 //checks if globaltype of global is available to other implementations (in library mode)
 .decl is_external_global_type(globaltype: symbol)
-is_external_global_type(GT) :- GT = "global". 
-is_external_global_type(GT) :- GT = "common_global". 
-is_external_global_type(GT) :- GT = "external_global". 
+is_external_global_type(GT) :- GT = "global".
+is_external_global_type(GT) :- GT = "common_global".
+is_external_global_type(GT) :- GT = "external_global".
 
-//contains all letters of the alphabet 
+//contains all letters of the alphabet
 .decl alowercaseletter(x: symbol)
 alowercaseletter("a").
 alowercaseletter("b").

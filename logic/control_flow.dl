@@ -1,8 +1,8 @@
 //control flow edges of CFG
 .decl edge(functionid: _functionid, startblock: _blockid, endblock: _blockid)
 //.output edge(delimiter=",")
-edge(FID, START, END) :- 
-block(FID, START, STARTLABEL), 
+edge(FID, START, END) :-
+block(FID, START, STARTLABEL),
 block(FID, END, ENDLABEL),
 predecessor(FID, ENDLABEL, STARTLABEL)
 .
@@ -24,13 +24,13 @@ downwardPath(FID, START, END) :- downwardPath(FID, START, MIDDLE), downwardEdge(
 //block lists all blocks in downward path
 .decl blockInDownwardPath(functionid: _functionid, startblock: _blockid, endblock: _blockid, block: _blockid)
 //.output blockInDownwardPath(delimiter=",")
-blockInDownwardPath(FID, START, END, BLOCK) :- 
+blockInDownwardPath(FID, START, END, BLOCK) :-
 downwardPath(FID, START, END), BLOCK = START.
 
-blockInDownwardPath(FID, START, END, BLOCK) :- 
+blockInDownwardPath(FID, START, END, BLOCK) :-
 downwardPath(FID, START, END), BLOCK = END.
 
-blockInDownwardPath(FID, START, END, BLOCK) :- 
+blockInDownwardPath(FID, START, END, BLOCK) :-
 downwardPath(FID, START, X), downwardPath(FID, X, END), BLOCK = X.
 
 //basic blocks
@@ -39,7 +39,7 @@ downwardPath(FID, START, X), downwardPath(FID, X, END), BLOCK = X.
 
 //get previous basic block within function
 .decl previous_block(functionid: _functionid, start: _blockid, previous: _blockid)
-previous_block(FID, START, PRED) :- 
+previous_block(FID, START, PRED) :-
 edge_cleaned(FID, PRED, START).
 
 //get next basic block within function
@@ -50,7 +50,7 @@ next_block(FID, START, NEXT) :- previous_block(FID, NEXT, START).
 
 //get first block of function
 .decl first_block(functionid: _functionid, blockid: _blockid)
-first_block(FID, BID) :- !previous_block(FID, BID, _), 
+first_block(FID, BID) :- !previous_block(FID, BID, _),
 block(FID, BID2, _), block(FID, BID, _), !BID2<BID.
 
 //get all possible blocks before current basic block within function
@@ -59,7 +59,7 @@ block(FID, BID2, _), block(FID, BID, _), !BID2<BID.
 is_before_within_function(FID, START, BEFORE) :- previous_block(FID, START, BEFORE).
 //non direct before
 is_before_within_function(FID, START, BEFORE) :- block(FID, START, _), block(FID, PRED, _),
-previous_block(FID, START, PRED), 
+previous_block(FID, START, PRED),
 is_before_within_function(FID, PRED, BEFORE).
 
 //get all possible blocks behind current basic block within function
@@ -68,7 +68,7 @@ is_before_within_function(FID, PRED, BEFORE).
 is_behind_within_function(FID, START, BEHIND) :- next_block(FID, START, BEHIND).
 //non direct before
 is_behind_within_function(FID, START, BEHIND) :- block(FID, START, _), block(FID, NEXT, _),
-next_block(FID, START, NEXT), 
+next_block(FID, START, NEXT),
 is_behind_within_function(FID, NEXT, BEHIND).
 
 //get all possible blocks from where the current basic block (which is a function start) is called
@@ -105,7 +105,7 @@ get_next_or_called_block(FID, BID, NFID, NBID) :- block(FID, BID, _), block(NFID
 is_before(FID, BID, BFID, BBID) :- get_previous_or_caller_block(FID, BID, BFID, BBID).
 //non direct before
 is_before(FID, BID, BFID, BBID) :- block(FID, BID, _), block(PFID, PBID, _),
-get_previous_or_caller_block(FID, BID, PFID, PBID), 
+get_previous_or_caller_block(FID, BID, PFID, PBID),
 is_before(PFID, PBID, BFID, BBID).
 
 //get all possible following blocks, transisting function calls
@@ -114,7 +114,7 @@ is_before(PFID, PBID, BFID, BBID).
 is_behind(FID, BID, BFID, BBID) :- get_next_or_called_block(FID, BID, BFID, BBID).
 //non direct before
 is_behind(FID, BID, BFID, BBID) :- block(FID, BID, _), block(PFID, PBID, _),
-get_next_or_called_block(FID, BID, PFID, PBID), 
+get_next_or_called_block(FID, BID, PFID, PBID),
 is_behind(PFID, PBID, BFID, BBID).
 
 
@@ -130,12 +130,12 @@ IID_BEHIND > IID.
 
 .decl is_instruction_before_other(instructionid: _instructionid, instructionid_before: _instructionid)
 //case instructions in same basic block
-is_instruction_before_other(IID, IID_BEFORE) :- 
+is_instruction_before_other(IID, IID_BEFORE) :-
 instruction(BID, IID, _, _), instruction(BID_BEFORE, IID_BEFORE, _, _),
 BID = BID_BEFORE, is_instruction_before_other_within_block(IID, IID_BEFORE).
 //case instructions in different basic blocks
 is_instruction_before_other(IID, IID_BEFORE) :-
-instruction(BID, IID, _, _), instruction(BID_BEFORE, IID_BEFORE, _, _), 
+instruction(BID, IID, _, _), instruction(BID_BEFORE, IID_BEFORE, _, _),
 BID != BID_BEFORE,
 block(FID, BID, _), block(FID_BEFORE, BID_BEFORE, _),
 is_behind(FID, BID, FID_BEFORE, BID_BEFORE).

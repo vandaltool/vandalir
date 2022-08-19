@@ -19,7 +19,7 @@
 #include "memlocation_structs.dl"
 #include "memlocation_arrays.dl"
 
-//rules & analysis 
+//rules & analysis
 #include "alias.dl"
 #include "points_to.dl"
 #include "taint.dl"

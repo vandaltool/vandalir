@@ -1,22 +1,22 @@
 //structAll Elements
 
 //stack allocations of struct (all element), when a single struct is allocated
-memlocation(FID, LOC, TYPE, CAT) :- 
+memlocation(FID, LOC, TYPE, CAT) :-
 instruction(BID, IID, LOC, OPC), block(FID, BID, _),
 !is_alloca_multidimensional(IID),
-OPC = "alloca", 
-get_first_operand(IID, BASETYPE), TYPE = cat(BASETYPE,"*"), 
+OPC = "alloca",
+get_first_operand(IID, BASETYPE), TYPE = cat(BASETYPE,"*"),
 get_second_operand(IID, SIZE),
 is_numeric(SIZE), to_number(SIZE) = 1,
 is_struct(BASETYPE),
 CAT = cat("structAll~1~",BASETYPE).
 
 //stack allocations of struct (all element) when an array of structs is allocated
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 instruction(BID, IID, LOC, OPC), block(FID, BID, _),
 !is_alloca_multidimensional(IID),
-OPC = "alloca", 
-get_first_operand(IID, BASETYPE), TYPE = cat(BASETYPE,"*"), 
+OPC = "alloca",
+get_first_operand(IID, BASETYPE), TYPE = cat(BASETYPE,"*"),
 get_second_operand(IID, SIZE),
 is_numeric(SIZE), to_number(SIZE) > 1,
 is_struct(BASETYPE),
@@ -27,7 +27,7 @@ LOCATION = cat(cat(LOC, "."), to_string(NUM)).
 //subelements of structs
 
 //structIndex elements (no structs, no arrays)
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation(FID, LOCATIONSTRUCT, _, CATSTRUCT),
 STRUCTALL = substr(CATSTRUCT, 0, 10),
 STRUCTALL = "structAll~",
@@ -45,7 +45,7 @@ CAT = "structIndex"
 .
 
 //structIndex elements, that are structs => spawn structAll
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation(FID, LOCATIONSTRUCT, _, CATSTRUCT),
 STRUCTALL = substr(CATSTRUCT, 0, 10),
 STRUCTALL = "structAll~",
@@ -63,7 +63,7 @@ CAT = cat("structAll~1~", BASETYPE)
 .
 
 //structIndex elements, that are arrays => spawn arrayAll
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation(FID, LOCATIONSTRUCT, _, CATSTRUCT),
 STRUCTALL = substr(CATSTRUCT, 0, 10),
 STRUCTALL = "structAll~",
@@ -82,7 +82,7 @@ CAT = cat("arrayAll~",OPSIZE,"~",BASETYPE)
 .
 
 
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation(FID, LOCATIONSTRUCT, _, CATSTRUCT),
 STRUCTALL = substr(CATSTRUCT, 0, 10),
 STRUCTALL = "structAll~",
@@ -102,7 +102,7 @@ CAT = "structIndex"
 //subelements of arrays
 
 //case only 1-dim array, not a struct => spawn arrayIndex elements
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation_catstr_subset(FID, LOCSTRUCT, CATSTRUCT),
 ARRAYALL = substr(CATSTRUCT, 0, 9),
 ARRAYALL = "arrayAll~",
@@ -122,7 +122,7 @@ get_xth_entry_in_separated_str(SIZE, 1, _, SIZESTR),
 CAT = "arrayIndex".
 
 //case only 1-dim array, which contains a struct => spawn structAll element
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation_catstr_subset(FID, LOCSTRUCT, CATSTRUCT),
 ARRAYALL = substr(CATSTRUCT, 0, 9),
 ARRAYALL = "arrayAll~",
@@ -142,7 +142,7 @@ get_xth_entry_in_separated_str(SIZE, 1, _, SIZESTR),
 CAT = cat("structAll~1~",BASETYPE).
 
 //case multi-dim array => spawn additional arrayAll Elements
-memlocation(FID, LOCATION, TYPE, CAT) :- 
+memlocation(FID, LOCATION, TYPE, CAT) :-
 memlocation_catstr_subset(FID, LOCSTRUCT, CATSTRUCT),
 ARRAYALL = substr(CATSTRUCT, 0, 9),
 ARRAYALL = "arrayAll~",

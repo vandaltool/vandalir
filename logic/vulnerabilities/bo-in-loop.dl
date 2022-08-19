@@ -86,7 +86,7 @@ MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out
 //.output is_loop_with_duplicate_increase(delimiter=",")
 
 //case head-controlled
-is_loop_with_duplicate_increase(CBIID, LEVEL, MESSAGE) :- 
+is_loop_with_duplicate_increase(CBIID, LEVEL, MESSAGE) :-
 TYPE = "head-controlled",
 loop(FID, CB, TYPE),
 loopCondition(FID, LASTBLOCK, CB, CBIID, TYPE),
@@ -105,7 +105,7 @@ LEVEL = "Vulnerability"
 .
 
 //case foot-controlled
-is_loop_with_duplicate_increase(CBIID, LEVEL, MESSAGE) :- 
+is_loop_with_duplicate_increase(CBIID, LEVEL, MESSAGE) :-
 TYPE = "foot-controlled",
 loop(FID, CB, TYPE),
 loopCondition(FID, CB, FIRSTBLOCK, CBIID, TYPE),

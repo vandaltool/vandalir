@@ -8,7 +8,7 @@ format_string_attacks(IID, LEVEL, MESSAGE) :- is_vulnerable_format_string_instru
 is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
 get_formatstring_arg(FNAME, RELARGNUM),
 block(FID, BID, _),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, RELARGNUM, FSLOC),
 is_vreg(FSLOC),
@@ -22,7 +22,7 @@ MESSAGE = cat(FNAME," detected and user input is provided to its #", to_string(R
 is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
 get_formatstring_arg(FNAME, RELARGNUM),
 block(FID, BID, _),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, RELARGNUM, FSLOC),
 is_vreg(FSLOC),
@@ -38,7 +38,7 @@ MESSAGE = cat(FNAME, " detected and its formatstring argument is not static.")
 is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
 get_formatstring_arg(FNAME, RELARGNUM),
 block(FID, BID, _),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, RELARGNUM, FSLOC),
 is_vreg(FSLOC),
@@ -56,7 +56,7 @@ MESSAGE = cat(FNAME, " detected and its formatstring argument is not static.")
 is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
 get_formatstring_arg(FNAME, RELARGNUM),
 block(FID, BID, _),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, RELARGNUM, FSLOC),
 is_vreg(FSLOC),
@@ -75,7 +75,7 @@ MESSAGE = cat(FNAME, " detected and its formatstring argument is not static.")
 is_vulnerable_format_string_instruction(IID, LEVEL, MESSAGE) :-
 get_formatstring_arg(FNAME, RELARGNUM),
 block(FID, BID, _),
-instruction(BID, IID, _, _), 
+instruction(BID, IID, _, _),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, RELARGNUM, FSLOC),
 is_global(FSLOC),

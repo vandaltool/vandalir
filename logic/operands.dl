@@ -32,7 +32,7 @@ fid_or_none(VAL, FID) :- function(FID, _, _, _), VAL=-1.
 //.decl is_concatenated_location(type: symbol)
 //is_concatenated_location(T) :- is_vreg(X), anumber(NUM), T = cat(cat(X, "."), to_string(NUM)).
 //is_concatenated_location(T) :- is_concatenated_location(X), anumber(NUM), anumber(NUM2),
-//T = cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)). 
+//T = cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)).
 //is_concatenated_location(T) :- is_concatenated_location(X), anumber(NUM), anumber(NUM2), anumber(NUM3),
 //T = cat(cat(cat(cat(cat(cat(X, "."), to_string(NUM)), "."), to_string(NUM2)), "."), to_string(NUM3)).
 //is_concatenated_location(T) :- is_concatenated_location(X), anumber(NUM), anumber(NUM2), anumber(NUM3), anumber(NUM4),
@@ -57,27 +57,27 @@ is_global_str(T) :- global(T, _, TYPE, _, _), TYPE = "i8".
 
 //is given operand numeric (aka is not a string)
 .decl is_numeric(type: symbol)
-is_numeric(VAL) :- opval(VAL), 
+is_numeric(VAL) :- opval(VAL),
 !contains(":", VAL), !contains("%", VAL), !contains("[", VAL), !contains("]", VAL),
 !contains("(", VAL), !contains(")", VAL), !contains("'", VAL), !contains(" ", VAL),
-!contains("a", VAL), !contains("b", VAL), !contains("c", VAL), !contains("d", VAL), 
-!contains("e", VAL), !contains("f", VAL), !contains("g", VAL), !contains("h", VAL), 
-!contains("i", VAL), !contains("j", VAL), !contains("k", VAL), !contains("l", VAL), 
-!contains("m", VAL), !contains("n", VAL), !contains("o", VAL), !contains("p", VAL), 
-!contains("q", VAL), !contains("r", VAL), !contains("s", VAL), !contains("t", VAL), 
-!contains("u", VAL), !contains("v", VAL), !contains("w", VAL), !contains("x", VAL), 
-!contains("y", VAL), !contains("z", VAL), !contains("A", VAL), !contains("B", VAL), 
-!contains("C", VAL), !contains("D", VAL), !contains("E", VAL), !contains("F", VAL), 
-!contains("G", VAL), !contains("H", VAL), !contains("I", VAL), !contains("J", VAL), 
-!contains("K", VAL), !contains("L", VAL), !contains("M", VAL), !contains("N", VAL), 
-!contains("O", VAL), !contains("P", VAL), !contains("Q", VAL), !contains("R", VAL), 
-!contains("S", VAL), !contains("T", VAL), !contains("U", VAL), !contains("V", VAL), 
+!contains("a", VAL), !contains("b", VAL), !contains("c", VAL), !contains("d", VAL),
+!contains("e", VAL), !contains("f", VAL), !contains("g", VAL), !contains("h", VAL),
+!contains("i", VAL), !contains("j", VAL), !contains("k", VAL), !contains("l", VAL),
+!contains("m", VAL), !contains("n", VAL), !contains("o", VAL), !contains("p", VAL),
+!contains("q", VAL), !contains("r", VAL), !contains("s", VAL), !contains("t", VAL),
+!contains("u", VAL), !contains("v", VAL), !contains("w", VAL), !contains("x", VAL),
+!contains("y", VAL), !contains("z", VAL), !contains("A", VAL), !contains("B", VAL),
+!contains("C", VAL), !contains("D", VAL), !contains("E", VAL), !contains("F", VAL),
+!contains("G", VAL), !contains("H", VAL), !contains("I", VAL), !contains("J", VAL),
+!contains("K", VAL), !contains("L", VAL), !contains("M", VAL), !contains("N", VAL),
+!contains("O", VAL), !contains("P", VAL), !contains("Q", VAL), !contains("R", VAL),
+!contains("S", VAL), !contains("T", VAL), !contains("U", VAL), !contains("V", VAL),
 !contains("W", VAL), !contains("X", VAL), !contains("Y", VAL), !contains("Z", VAL),
 !contains("{", VAL), !contains("}", VAL), !contains("/", VAL), !contains("_", VAL),
 !contains("<", VAL), !contains(">", VAL), !contains("*", VAL),
 strlen(VAL)<=9, strlen(VAL)>0 //ensure it fits into maxint
 .
-//is_numeric(VAL) :- anumber(VAL2), VAL = to_string(VAL2). 
+//is_numeric(VAL) :- anumber(VAL2), VAL = to_string(VAL2).
 
 //is given operand a pointer
 .decl is_pointer(type: symbol)

@@ -31,15 +31,15 @@ TYPE = "head-controlled"
 //all loops
 .decl loop(functionid: _functionid, conditionBlock: _blockid, type: symbol)
 .output loop(delimiter=",")
-loop(FID, CONDITION, TYPE) :- 
-loopCondition(FID, _, _, CONDITIONID, TYPE), 
+loop(FID, CONDITION, TYPE) :-
+loopCondition(FID, _, _, CONDITIONID, TYPE),
 instruction(CONDITION, CONDITIONID, _, _)
 .
 
 //loops with paths
 .decl loop_with_paths(conditionBlock: _blockid)
 //.output loop_with_paths(delimiter=",")
-loop_with_paths(CB) :- 
+loop_with_paths(CB) :-
 loop(_, CB, _),
 COUNTBB = count : { loopBody(CB, _) },
 COUNTBB > 1
@@ -78,29 +78,29 @@ loopBody(CONDBLOCK, BODY) :- loopBodyWithCondition(CONDBLOCK, BODY), CONDBLOCK !
 //enumerates all blocks within loop including the confition block
 .decl loopBodyWithCondition(conditionBlock: _blockid, bodyBlock: _blockid)
 .output loopBodyWithCondition(delimiter=",")
-loopBodyWithCondition(CONDBLOCK, BODY) :- 
+loopBodyWithCondition(CONDBLOCK, BODY) :-
 loopCondition(_, EDGESTART, EDGEEND, CONDITIONID, _),
 instruction(CONDBLOCK, CONDITIONID, _, _),
 downwardPath(_, EDGEEND, X), BODY = X,
 X<=EDGESTART
 .
 
-loopBodyWithCondition(CONDBLOCK, BODY) :- 
+loopBodyWithCondition(CONDBLOCK, BODY) :-
 loopCondition(_, EDGESTART, EDGEEND, CONDITIONID, _),
-instruction(CONDBLOCK, CONDITIONID, _, _), 
+instruction(CONDBLOCK, CONDITIONID, _, _),
 downwardPath(_, EDGEEND, X), BODY = EDGEEND,
 X<=EDGESTART
 .
 
-loopBodyWithCondition(CONDBLOCK, BODY) :- 
+loopBodyWithCondition(CONDBLOCK, BODY) :-
 loopCondition(_, EDGESTART, EDGEEND, CONDITIONID, _),
-instruction(CONDBLOCK, CONDITIONID, _, _), 
+instruction(CONDBLOCK, CONDITIONID, _, _),
 downwardPath(_, X, EDGESTART), BODY = EDGESTART,
 X>=EDGEEND
 .
 
-loopBodyWithCondition(CONDBLOCK, BODY) :- 
-loopCondition(_, EDGESTART, EDGEEND, CONDITIONID, _), 
+loopBodyWithCondition(CONDBLOCK, BODY) :-
+loopCondition(_, EDGESTART, EDGEEND, CONDITIONID, _),
 instruction(CONDBLOCK, CONDITIONID, _, _),
 downwardPath(_, X, EDGESTART), BODY = X,
 X>=EDGEEND
@@ -112,7 +112,7 @@ X>=EDGEEND
 .decl loop_variable(conditionBlock: _blockid, functionid: _functionid, loopVariable: symbol)
 .output loop_variable(delimiter=",")
 //case: condition block, direct integer i32
-loop_variable(CB, FID, VREGLV) :- 
+loop_variable(CB, FID, VREGLV) :-
 block(FID, CB, _),
 loop(FID, CB, _),
 instruction(CB, IID, _, "icmp"),
@@ -123,7 +123,7 @@ TYPE = "i32"
 .
 
 //case: condition block, direct integer i64
-loop_variable(CB, FID, VREGLV) :- 
+loop_variable(CB, FID, VREGLV) :-
 block(FID, CB, _),
 loop(FID, CB, _),
 instruction(CB, IID, _, "icmp"),
@@ -134,7 +134,7 @@ TYPE = "i64"
 .
 
 //case: condition block, pointer to string is loop variable
-loop_variable(CB, FID, VREGLV) :- 
+loop_variable(CB, FID, VREGLV) :-
 block(FID, CB, _),
 loop(FID, CB, _),
 instruction(CB, IID, _, "icmp"),

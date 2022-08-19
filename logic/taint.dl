@@ -15,7 +15,7 @@ block(FID, BID, _),
 instruction(BID, IID, _, "call"),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, ARGID_REL, LOC),
-argument(FIDFUNC, ARGID, _, TYPE), 
+argument(FIDFUNC, ARGID, _, TYPE),
 get_relative_argid(FIDFUNC, ARGID, ARGID_REL),
 function(FIDFUNC, FNAME, _, _),
 userinput(FNAME, ARGID_REL, "=", _),
@@ -30,19 +30,19 @@ instruction(BID, IID, _, "call"),
 is_X_call_instruction(FNAME, IID),
 get_ith_operand(IID, ARGID_REL, LOC),
 
-argument(FIDFUNC, ARGID, _, TYPE), 
+argument(FIDFUNC, ARGID, _, TYPE),
 get_relative_argid(FIDFUNC, ARGID, ARGID_REL),
 function(FIDFUNC, FNAME, _, _),
 userinput(FNAME, INPUT_ID, "+", _),
 get_size_of_userinput(SIZE, _, FNAME, ARGID_REL),
 CAT = cat("userinput_", to_string(SIZE)),
-ARGID_REL >= INPUT_ID 
+ARGID_REL >= INPUT_ID
 .
 
 //mode main (following)
 taintlocation(FID, LOC, TYPE, CAT) :-
 FNAME = "main",
-argument(FID, ARGID, LOC, TYPE), 
+argument(FID, ARGID, LOC, TYPE),
 get_relative_argid(FID, ARGID, ARGID_REL),
 function(FID, FNAME, _, _),
 userinput(FNAME, INPUT_ID, "+", _),
@@ -52,7 +52,7 @@ ARGID_REL >= INPUT_ID
 .
 
 //mode return value
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 function(_, FNAME, _, TYPE),
 instruction(BID, IID, LOC, "call"),
 is_X_call_instruction(FNAME, IID),
@@ -66,7 +66,7 @@ CAT = cat("userinput_", to_string(SIZE))
 
 
 //case memequals
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 taintlocation(FID2, LOC2, TYPE, CAT),
 memequals(FID, LOC, FID2, LOC2)
 .
@@ -74,7 +74,7 @@ memequals(FID, LOC, FID2, LOC2)
 //load or getelementptr from userinput ==> is also userinput
 
 // load instruction
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 instruction(BID, IID, VREG, OPC), block(FID, BID, _),
 OPC = "load",
 VREG != "%-1",
@@ -86,7 +86,7 @@ taintlocation(FID, LOADEDLOC, _, CAT)
 .
 
 // getelementptr instruction
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 instruction(BID, IID, VREG, OPC), block(FID, BID, _),
 OPC = "getelementptr",
 LOC = VREG,
@@ -98,7 +98,7 @@ taintlocation(FID, DATAOBJ, _, CAT)
 /*
 //TODO: check if i am useful
 //tainted->x ==> x is also tainted
-taintlocation(FID2, LOC2, TYPE, CAT) :- 
+taintlocation(FID2, LOC2, TYPE, CAT) :-
 points_to(FID, LOC, FID2, LOC2),
 taintlocation(FID, LOC, _, _),
 TYPE = "unknown", CAT = "userinput"
@@ -108,17 +108,17 @@ TYPE = "unknown", CAT = "userinput"
 //library mode (=libmode)
 
 //libmode: all function arguments that are pointer may contain userinput
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 Config_LibraryMode(1),
 function(FID, _, "define", _), //only defined functions
-argument(FID, _, LOC, TYPE), 
+argument(FID, _, LOC, TYPE),
 is_pointer(TYPE),
 SIZE = MAXINT,
 CAT = cat("userinput_", to_string(SIZE))
 .
 
 //libmode: all public available globals that are pointers may contain userinput
-taintlocation(FID, LOC, TYPE, CAT) :- 
+taintlocation(FID, LOC, TYPE, CAT) :-
 Config_LibraryMode(1),
 global(LOC, GT, TYPE, _, _),
 is_pointer(TYPE),
@@ -177,7 +177,7 @@ get_function_for_call_instruction(CALLEDFNAME, IID),
 CALLEDFNAME = FNAME, FNAME = "fgets",
 get_second_operand(IID, N),
 get_int_by_vreg(SIZE, FID, N)
-. 
+.
 
 //case limited: default (not following)
 get_size_of_userinput(SIZE, IID, FNAME, ARGID_REL) :-
@@ -192,12 +192,12 @@ FNAME != "fgets"
 //determine if taintlocation may contain direct userinput and if so also return category
 .decl is_memloc_with_direct_userinput(functionid: _functionid, location: symbol, memcategory: _memcategory)
 
-is_memloc_with_direct_userinput(FID, LOC, CAT) :- 
+is_memloc_with_direct_userinput(FID, LOC, CAT) :-
 taintlocation(FID, LOC, _, CAT),
 is_memcat_userinput_str(CAT)
 .
 
-is_memloc_with_direct_userinput(FID, LOC, CAT) :- 
+is_memloc_with_direct_userinput(FID, LOC, CAT) :-
 memequals(FID, LOC, FID2, LOC2),
 taintlocation(FID2, LOC2, _, CAT),
 is_memcat_userinput_str(CAT)
@@ -213,22 +213,22 @@ is_memcat_userinput_str(STR) :- taintlocation(_, _, _, STR), match("userinput_.*
 .decl is_memloc_with_userinput(functionid: _functionid, location: symbol)
 //.output is_memloc_with_userinput
 //case direct user input
-is_memloc_with_userinput(FID, LOC) :- 
+is_memloc_with_userinput(FID, LOC) :-
 is_memloc_with_direct_userinput(FID, LOC, _)
 .
 //case transitioning user input
-is_memloc_with_userinput(FID, LOC) :- 
-transitions_userinput_to(FID, FROM, LOC), 
+is_memloc_with_userinput(FID, LOC) :-
+transitions_userinput_to(FID, FROM, LOC),
 is_memloc_with_userinput(FID, FROM).
 
 //case memequals
-is_memloc_with_userinput(FID, LOC) :- 
-memequals(FID, LOC, FID2, LOC2), 
+is_memloc_with_userinput(FID, LOC) :-
+memequals(FID, LOC, FID2, LOC2),
 is_memloc_with_userinput(FID2, LOC2).
 
 //case points-to
-is_memloc_with_userinput(FID, LOC) :- 
-points_to(FID, LOC, FID2, LOC2), 
+is_memloc_with_userinput(FID, LOC) :-
+points_to(FID, LOC, FID2, LOC2),
 is_memloc_with_userinput(FID2, LOC2).
 
 
