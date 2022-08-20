@@ -217,7 +217,8 @@ get_buffsize_by_vreg(VAL, FID, VREG) :-
     // is_pointer(TYPE),
     VAL = MAXINT.
 
-// case direct user input (minimum length => limited or unlimited may have a length of 0)
+// case direct user input (minimum length => limited or unlimited may have a
+// length of 0)
 get_buffsize_by_vreg(VAL, FID, VREG) :-
     memlocation(FID, VREG, _, _),
     is_memloc_with_userinput(FID, VREG),
@@ -228,7 +229,9 @@ get_buffsize_by_vreg(VAL, FID, VREG) :-
 get_buffsize_by_vreg(VAL, FID, VREG) :-
     is_global(VREG),
     global(VREG, _, _, SIZE, _),
-    is_numeric(SIZE),
+    // TODO(dmitryya) |is_number| does also the `opval` check which fails
+    // for just number. Need to come up with beter solution there.
+    // is_numeric(SIZE),
     VAL = to_number(SIZE),
     function(FID, _, _, _).
 
@@ -240,7 +243,9 @@ get_struct_size(VAL, STRUCTID) :-
     VAL = sum SIZE : get_struct_operand_size(SIZE, STRUCTID, _).
 
 
-.decl get_struct_operand_size(value: number, structid: _structid, structoperandid:_structoperandid)
+.decl get_struct_operand_size(value: number,
+                              structid: _structid,
+                              structoperandid:_structoperandid)
 //.output get_struct_operand_size(delimiter=",")
 
 get_struct_operand_size(VAL, STRUCTID, STROPID) :-
