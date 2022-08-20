@@ -261,7 +261,7 @@ is_instruction_before_other(IID, IID_BEFORE) :-
     BID != BID_BEFORE,
     block(FID, BID, _),
     block(FID_BEFORE, BID_BEFORE, _),
-    is_behind(FID, BID, FID_BEFORE, BID_BEFORE).
+    is_before(FID, BID, FID_BEFORE, BID_BEFORE).
 
 
 .decl is_instruction_behind_other(instructionid: _instructionid,
