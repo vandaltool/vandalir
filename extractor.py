@@ -1,4 +1,5 @@
 from llvmlite.binding import parse_assembly, parse_bitcode
+import logging
 from itertools import chain
 import argparse
 import os
@@ -15,44 +16,44 @@ DLC_SHOWVULNERABILITIES = ("showVulnerabilities", True)
 DLC_SHOWWARNINGS = ("showWarnings", True)
 DLC_DEEPALIAS = ("deepAlias", False) # deprecated, no longer in use
 
-# directory of fact files
-global FACTS_DIR
-FACTS_DIR = ""
-
 # installed llvm version (tested on 10)
 LLVM_VER = "10"
+# define typical user input functions
+CONV_INSTRUCTIONS = ["trunc", "zext", "sext", "fptrunc", "fpext", "fptoui",
+                     "fptosi", "uitofp", "sitofp", "ptrtoint", "inttoptr",
+                     "bitcast", "addrspacecast"]
 
 # define typical user input functions
-CONV_INSTRUCTIONS = ["trunc", "zext", "sext", "fptrunc", "fpext", "fptoui", "fptosi",
-                     "uitofp", "sitofp", "ptrtoint", "inttoptr", "bitcast", "addrspacecast"]
-
-# define typical user input functions
-USER_INPUT = [["main", "1", "+", "0"], ["scanf", "2", "+", "1"], ["fscanf", "3", "+", "1"],
-              ["sscanf", "2", "+", "1"], ["vscanf", "2", "+", "1"],
-              ["vsscanf", "3", "+", "1"], ["vfscanf", "2", "+", "1"],
-              ["fgets", "1", "=", "1"], ["fgetc", "0", "=", "1"], ["getc", "0", "=", "1"],
-              ["gets", "1", "=", "0"], ["getenv", "0", "=", "0"], ["fread", "1", "=", "0"],
-              ["_IO_getc", "0", "=", "1"], ["__isoc99_sscanf", "2", "+", "1"],
-              ["__isoc99_fscanf", "3", "+", "1"], ["recv", "2", "=", "1"], 
+USER_INPUT = [["main", "1", "+", "0"], ["scanf", "2", "+", "1"],
+              ["fscanf", "3", "+", "1"], ["sscanf", "2", "+", "1"],
+              ["vscanf", "2", "+", "1"], ["vsscanf", "3", "+", "1"],
+              ["vfscanf", "2", "+", "1"], ["fgets", "1", "=", "1"],
+              ["fgetc", "0", "=", "1"], ["getc", "0", "=", "1"],
+              ["gets", "1", "=", "0"], ["getenv", "0", "=", "0"],
+              ["fread", "1", "=", "0"], ["_IO_getc", "0", "=", "1"],
+              ["__isoc99_sscanf", "2", "+", "1"],
+              ["__isoc99_fscanf", "3", "+", "1"], ["recv", "2", "=", "1"],
               ["recvfrom", "2", "=", "1"], ["recvmsg", "2", "=", "1"],
               ["setbuf", "2", "=", "1"], ["setbuffer", "2", "=", "1"],
               ["setvbuf", "2", "=", "1"], ["_IO_getc", "0", "=", "1"]]
 
-# this limit describes the maximum number of elements in one array, that are used by the analysis
+# this limit describes the maximum number of elements in one array,
+# that are used by the analysis
 LIMIT = 1000
 
 # describes the maximum depth of structs or arrays within structs
 MAXDEPTH = 4
 
 # build config array
-DATALOG_CONFIG = [DLC_LIBRARYMODE, DLC_SHOWVULNERABILITIES, DLC_SHOWWARNINGS, DLC_DEEPALIAS]
+DATALOG_CONFIG = [DLC_LIBRARYMODE, DLC_SHOWVULNERABILITIES,
+                  DLC_SHOWWARNINGS, DLC_DEEPALIAS]
 
 # implementation
 
 
 class Parser:
 
-    def __init__(self, input):
+    def __init__(self, input, log_level):
         self.inputFile = input
         self.functionid = 0
         self.argumentid = 0
@@ -75,6 +76,8 @@ class Parser:
             "struct": list(),
             "structoperand": list()
         }
+        self.log = logging.getLogger('[EXTRACTOR]')
+        self.log.setLevel(log_level)
 
     def parse(self):
 
@@ -83,45 +86,36 @@ class Parser:
         self.parseGlobals(module)
         self.parseStructs(module)
         self.parse_module(module)
-        self.generate_helper_facts()
-        self.generate_configuration_fact()
 
-        print("Parsing successful.")
+        self.log.info("Parsing successful.")
 
     def parse_module(self, module):
         for function in module.functions:
-            argumentRegister = 0
+            function_str = ("function(" +str(self.functionid) + ";\"" +
+                            str(function.name)+"\";\"")
 
-            functiontype = "define"
+            if function.is_declaration:
+                function_str += "declare"
+            else:
+                function_str += "define"
+            function_str += "\";\""
 
-            if(not any(function.blocks)):
-                functiontype = "declare"
+            match = re.search("^(.*) \((.*)\).*", str(function.type))
+            if not match:
+                raise ValueError(f"Failed to parse function type: {function.type}")
 
-            function_str = "function("+str(self.functionid)+";\""+str(function.name)+"\";\"" + \
-                functiontype+"\";\""+str(function.type).split('(')[0].strip()+"\")"
+            function_str += match.group(1) + "\")"
             self.output(function_str)
 
-            # print(str(function.name))
-            # print(str(function))
-            argument_str = str(function).split("@", 1)[1].split(") #", 1)[0].split("(", 1)[1]
-
-            r = re.compile(r'(?:[^,(]|\([^)]*\))+')
-            arguments = r.findall(argument_str)
-
-            # print(argument_str)
-
-            for argument in arguments:
-                argtype = argument.replace(" nocapture", "").replace(" noalias", "").replace(" immarg", "")
-                argtype = argtype.replace(" writeonly", "").replace(" readonly", "").strip()
-                while(" %" in argtype):
-                    argtype = argtype.rsplit(" %")[0].strip()
-                # if(argtype == "..."):
-                #     continue
-                # print(argtype)
-
+            argumentRegister = 0
+            args_str = match.group(2)
+            arg_ptrn = re.compile(" *([-a-zA-Z$%\._0-9\*]+),*")
+            for match in arg_ptrn.finditer(args_str):
                 argumentRegisterStr = "%"+str(argumentRegister)
-                arguments_str = "argument("+str(self.functionid)+";"+str(self.argumentid) + \
-                    ";"+argumentRegisterStr+";\""+str(argtype)+"\")"
+                arguments_str = ("argument("+str(self.functionid) + ";" +
+                                 str(self.argumentid) + ";" +
+                                 argumentRegisterStr + ";\"" +
+                                 str(match.group(1)) + "\"")
                 self.output(arguments_str)
                 self.argumentid += 1
                 argumentRegister += 1
@@ -137,11 +131,11 @@ class Parser:
                 self.output(block_str)
                 for instruction in block.instructions:
                     fullInstruction = str(instruction).strip()
-                    # print(fullInstruction)
 
                     # get virtual Register number
                     virtualRegister = self.getVirtualRegisterOfInstruction(instruction)
-                    # print(virtualRegister)
+                    self.log.debug("Full Instruction %s: VREG %s",
+                                   fullInstruction, virtualRegister)
 
                     instruction_str = "instruction("+str(self.blockid)+";"+str(self.instructionid) + \
                         ";\""+virtualRegister+"\";\""+str(instruction.opcode)+"\")"
@@ -204,22 +198,19 @@ class Parser:
             typeGEP = fullInstruction[fullInstruction.find("inbounds ")+9:fullInstruction.find(", ")].strip()
         else:
             typeGEP = fullInstruction[fullInstruction.find("getelementptr ")+14:fullInstruction.find(", ")].strip()
-        # print("GEP "+typeGEP)
         (returnType, size) = self.parseType(typeGEP)
         returnType = returnType+"~"+size
-        # print("GEP2 "+returnType)
+        self.log.debug("GEP type %s, return type %s", typeGEP, returnType)
         allOperands = list(instruction.operands)
         allOperands.append(returnType)
 
         for operand in allOperands:
-            # print(operand)
             processedOperands = self.preprocessOperand(instruction, operand)
-            # print(processedOperands)
+            self.log.debug("Operand: %s, processed %s", str(operand), processedOperands)
             for procOp in processedOperands:
                 if(not procOp):  # skip empty operands
                     continue
                 operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";\""+procOp+"\")"
-                # print(procOp)
                 self.output(operand_str)
                 self.operandid += 1
 
@@ -239,13 +230,9 @@ class Parser:
             else:
                 operands[1] = "%"+ops2[0].strip().rsplit("%", 1)[1].strip()
             operands[2] = ops2[1].strip()
-            # print(operands)
         except:
-            print("Parsing Error in parseICMPInstructions")
-            print(instruction)
-            # print(ops)
-            # print(ops2)
-            # sys.exit()
+            raise ValueError("Parsing Error in parseICMPInstructions:"
+                             "    Ins {instruction} OPS {ops}, OPS2 {ops2}")
 
         for op in operands:
             if(op is None):
@@ -257,9 +244,6 @@ class Parser:
             operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";\""+op+"\")"
             self.output(operand_str)
             self.operandid += 1
-
-        # print(instruction)
-        # print(operands)
 
     def parseConversionInstructions(self, instruction):
         for operand in instruction.operands:
@@ -273,8 +257,7 @@ class Parser:
         fullInstruction = str(instruction).strip()
         splitInstruction = fullInstruction.split(" to ")
         if(len(splitInstruction) != 2):
-            print("ERROR: conversion instruction has != 1 'to'!")
-            sys.exit(1)
+            raise ValueError("ERROR: conversion instruction has != 1 'to'!")
         operand = splitInstruction[1].strip()
         operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";\""+operand+"\")"
         self.output(operand_str)
@@ -283,12 +266,12 @@ class Parser:
     def parsePhiInstruction(self, fullInstruction):
         instr = fullInstruction.split("phi ")[1]
         instr = instr.split(" ")
-        # print("phi:"+str(fullInstruction))
+        self.log.debug("PHI: %s ", str(fullInstruction))
 
         if(len(instr) < 7):
-            print("ERROR: phi instruction could not be parsed. Num of parts < 7.")
-            print(instr)
-            sys.exit(1)
+            raise ValueError(
+                "ERROR: phi instruction could not be parsed. Num of parts < 7.\n" +
+                instr)
 
         datatype = instr[0].strip()
 
@@ -316,12 +299,7 @@ class Parser:
             if(len(allocaTypeTemp) == 2):
                 allocaType = "["+allocaTypeTemp[1]+" x "+allocaTypeTemp[0]+"]"
 
-        # print(fullInstruction)
-        # print(allocaType)
-
         (allocaType, arraySize) = self.parseType(allocaType, mode=1)
-
-        # print(allocaType)
 
         operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";"+allocaType+")"
         self.output(operand_str)
@@ -338,8 +316,6 @@ class Parser:
 
         r = re.compile(r'(?:[^,(]|\([^)]*\))+')
         ops2 = r.findall(ops)
-        # print(ops)
-        # print(ops2)
         try:
             operands[0] = ops2[0]
             operands[1] = ops2[0]+"*"
@@ -348,14 +324,10 @@ class Parser:
             elif(" @" in ops2[1]):
                 operands[2] = "@"+ops2[1].rsplit(" @", 1)[1]
             else:
-                pass
-                # print("Parsing Error in parseLoadInstruction")
+                self.log.warning("Parsing Error in parseLoadInstruction")
         except:
             pass
-            # print("Parsing Error in parseLoadInstruction")
-            # sys.exit()
-        
-        #print(operands)
+            self.log.warning("Parsing Error in parseLoadInstruction")
 
         for op in operands:
             if(op is None):
@@ -371,31 +343,23 @@ class Parser:
     def parseStoreInstruction(self, instruction):
         operands = [None]*4
         ops = str(instruction).strip().replace("store ", "")
-        # print(ops)
         r = re.compile(r'(?:[^,(]|\([^)]*\))+')
         ops = r.findall(ops)
 
         src = ops[0].strip()
         dest = ops[1].strip()
-        # print(src)
-        # print(dest)
 
         src = src.rsplit(" ", 1)
         dest = dest.rsplit(" ", 1)
 
-        # print(ops)
-
         try:
-
             operands[0] = src[0].strip()
             operands[1] = src[1].strip()
             operands[2] = dest[0].strip()
             operands[3] = dest[1].strip()
         except:
             pass
-            # print("Parsing Error in parseStoreInstruction")
-        # print(ops)
-        # print(operands)
+            self.log.warning("Parsing Error in parseStoreInstruction")
 
         for op in operands:
             if(op is None):
@@ -410,12 +374,9 @@ class Parser:
     def parseGlobals(self, module):
 
         globals = list(module.global_variables)
-        # globals.extend(list(module.functions))
         for glob in globals:
             globalName = "@"+str(glob.name).replace(".", "_")  # avoid globals name conflicts
-            # print(globalName)
             globstr = str(glob)
-            # print(globstr)
             # get storage type
             storageType = "unknown"
             if("private unnamed_addr" in globstr):
@@ -428,14 +389,12 @@ class Parser:
                 storageType = "global"
             elif("constant" in globstr):
                 storageType = "constant"
-            # print(storageType)
             # get data type
             globType = str(glob.type)
             (globType, globTypeArraySize) = self.parseType(globType)
             globValue = "unknown"
             if(globType == "i8"):
                 glob = str(glob)
-                # print(glob)
                 globValue = str(glob)[glob.find("c\"")+2:glob.rfind("\"")]
             glob_str = "global("+globalName+";"+storageType+";"+globType+";"+str(globTypeArraySize)+";"+globValue+")"
             self.output(glob_str)
@@ -446,12 +405,11 @@ class Parser:
         structId = 0
 
         for struct in structs:
+            self.log.debug("Struct %s", str(struct))
             structTypeId = 0
             name = "%"+struct.name
-            # print(str(struct))
             struct_str = str(struct)
             inBrackets = struct_str[struct_str.find("{")+1:struct_str.find("}")-1]
-            # print(inBrackets)
             types = inBrackets.strip().split(", ")
             operandsList = list()
             for elementType in types:
@@ -459,8 +417,7 @@ class Parser:
                 operandsList.append(elementType)
                 struct_operands_str = "structoperand("+str(structId)+";" + \
                     str(structTypeId)+";"+elementType[0]+";"+str(elementType[1])+")"
-                # print(name)
-                # print(struct_operands_str)
+                self.log.debug("Struct %s: : %s", str(struct), inBrackets)
                 self.output(struct_operands_str)
                 structTypeId += 1
 
@@ -471,17 +428,16 @@ class Parser:
 
     # mode 0: get return type of functions, if function types are supplied
     def parseType(self, operand, mode=0):
-        # print(operand)
+        self.log.debug("operand %s", operand)
         if(mode == 0):
             if("(" in operand):
                 operand = operand[:operand.find("(")].strip()
         if("[" in operand and "]" in operand):  # array detected
-            # print(operand)
             inBrackets = operand
             number = ""
             while("[" in inBrackets and "]" in inBrackets):
                 inBrackets = inBrackets[inBrackets.find("[")+1:inBrackets.rfind("]")].strip()
-                # print("IB:"+str(inBrackets))
+                self.log.debug("IB: %s", str(inBrackets))
                 if(" x ") in inBrackets:
                     # do not parse it as pointer! +operand[operand.find("]")+1:]
                     number += "x"+inBrackets[:inBrackets.find(" x ")].strip()
@@ -490,10 +446,9 @@ class Parser:
             number = number[1:]  # remove leading "x"
         else:
             number = "1"
-        # print(operand)
         operand = operand.strip()
         result = (operand, number)
-        # print(result)
+        self.log.debug("Result: %s", result)
         return result
 
     def parseGetElementPtrInstructionGivenAsString(self, callInstruction, strInstruction):
@@ -507,9 +462,9 @@ class Parser:
         self.output(instruction_str)
         # parse operands for artificial instruction
 
-        # print(strInstruction)
         returnType = strInstruction[:strInstruction.find(" ")-1]
-        # print(":"+returnType+":")
+        self.log.debug("Instruction %s; return type %s",
+                       strInstruction, returnType)
         strInstruction = strInstruction[strInstruction.find("(")+1:strInstruction.find(")")].strip()
         operandList = strInstruction.split(", ")
         operandList = operandList[1:]
@@ -517,7 +472,6 @@ class Parser:
         operandList[0] = operandList[0][operandList[0].find("]")+1:]
         operandList[0] = operandList[0][operandList[0].find("*")+1:]
 
-        # print(operandList)
         operandList.append(returnType)
 
         for operand in operandList:
@@ -542,9 +496,6 @@ class Parser:
 
         operand = str(operand).strip()
 
-        # if(opcode == "getelementptr"):
-        #    print("operand:"+str(operand))
-
         if(opcode == "call"):  # call operand
             if("declare" in operand):  # function call operand
                 operand = operand[operand.find("@")+1:operand.find("(")].strip()
@@ -557,21 +508,20 @@ class Parser:
 
         # parse getelementptr as its own instruction
         if("getelementptr" in operand and operand[0] != "%"):
-            # print(operand)
+            self.log.debug("getelementptr operand: %s", operand)
             operand = self.parseGetElementPtrInstructionGivenAsString(instruction, operand)
             return [operand.strip()]
 
         if(len(splitInstructions) > 1):
-            # print(splitInstructions[0])
-            # print(splitInstructions[1])
+            self.log.debug("splitInstructions [%s, %s]",
+                           splitInstructions[0], splitInstructions[1])
             if(splitInstructions[0][0] == "i" and splitInstructions[1]):  # remove integer type
                 # do not parse types for call instructions (as they are given by function def)
                 if(opcode == "call" or opcode == "ret" or "getelementptr"):
                     operand = [splitInstructions[1].strip()]
                 else:
                     operand = [splitInstructions[0].strip(), splitInstructions[1].strip()]
-                # print("list created at "+opcode)
-                # print(operand)
+                self.log.debug("List created at %s; operand %s", opcode, operand)
             elif(splitInstructions[0][0] == "%"):  # return virtual register
                 operand = splitInstructions[0]
             elif(splitInstructions[0][0] == "@"):  # return global variable
@@ -585,7 +535,7 @@ class Parser:
     def output(self, output):
 
         output = output.replace("\n", "").strip()+"."
-        # print(output)
+        self.log.debug("Output: %s", output)
         outputType = output.split("(")[0]
 
         output = output[output.find("(")+1:output.rfind(")")]
@@ -596,7 +546,7 @@ class Parser:
             changed = False
             if(not outputEntry.isnumeric()):
                 if(not outputEntry):
-                    # print("Warning: outputEntry empty. Skipping output value.")
+                    self.log.warning("Warning: outputEntry empty. Skipping output value.")
                     return
                 if(outputEntry[0] == '"' and outputEntry[-1] == '"'):  # and outputEntry[1:-1].isnumeric()):
                     newOutput.append(outputEntry[1:-1])
@@ -610,12 +560,14 @@ class Parser:
                     newOutput[2] = newOutput[2].replace(".", "_")  # avoid globals name conflicts
         self.outputList[outputType].append(";".join(newOutput))
 
-    def printOutput(self):
+    def printOutput(self, output_dir):
         for outputType in self.outputList.keys():
             output = "\n".join(self.outputList[outputType])
-            outputFile = open(FACTS_DIR+"/"+outputType+".facts", "w")
+            outputFile = open(output_dir + "/" + outputType + ".facts", "w")
             outputFile.writelines(output)
             outputFile.close()
+        self.generate_helper_facts(output_dir)
+        self.generate_configuration_fact(output_dir)
 
     def getInputFile(self):
         path, inputFileExtension = os.path.splitext(self.inputFile)
@@ -625,39 +577,39 @@ class Parser:
                 module = parse_assembly(code)
         elif(inputFileExtension == '.bc'):
             os.system("llvm-dis-"+LLVM_VER+" "+self.inputFile)
-            print("LLVM bitcode file was disassembled to .ll file.")
+            self.log.info("LLVM bitcode file was disassembled to .ll file.")
             self.inputFile = self.inputFile[:-3]+".ll"
 
             with open(self.inputFile, 'r') as file:
                 code = file.read()
                 module = parse_assembly(code)
         else:
-            print("wrong file type given. Only LLVM-IR .ll and .bc files are allowed.")
-            print(inputFileExtension)
+            self.log.error("wrong file type given. Only LLVM-IR .ll and .bc files are allowed.")
+            self.log.error(inputFileExtension)
             sys.exit(1)
 
         return module
 
-    def generate_helper_facts(self):
-        self.generate_anumber()
-        self.generate_userinput_facts()
+    def generate_helper_facts(self, output_dir):
+        self.generate_anumber(output_dir)
+        self.generate_userinput_facts(output_dir)
 
-    def generate_anumber(self):
-        with open(FACTS_DIR+"/anumber.facts", "w") as f:
+    def generate_anumber(self, output_dir):
+        with open(output_dir + "/anumber.facts", "w") as f:
             outputList = list()
             for i in range(0, LIMIT):
                 outputList.append(str(i))
             f.writelines("\n".join(outputList))
 
-    def generate_userinput_facts(self):
-        with open(FACTS_DIR+"/userinput.facts", "w") as f:
+    def generate_userinput_facts(self, output_dir):
+        with open(output_dir + "/userinput.facts", "w") as f:
             outputList = USER_INPUT
             for i in range(0, len(outputList)):
                 if(i > 0):
                     f.writelines("\n")
                 f.writelines(";".join(outputList[i]))
 
-    def generate_configuration_fact(self):
+    def generate_configuration_fact(self, output_dir):
         strConfigList = list()
         for configEntry in DATALOG_CONFIG:
             if(configEntry[1] is True):
@@ -665,7 +617,7 @@ class Parser:
             if(configEntry[1] is False):
                 strConfigList.append((configEntry[0], "0"))
 
-        with open(FACTS_DIR+"/configuration.facts", "w") as f:
+        with open(output_dir + "/configuration.facts", "w") as f:
             for entry in strConfigList:
                 datalog_configuration_entry = entry[0]+";"+entry[1]
                 f.writelines(datalog_configuration_entry+"\n")
@@ -689,33 +641,31 @@ class Parser:
         block = str(block).strip()
         if(len(block) == 0):
             return tuple()
-        else:
-            if(block[0] == "%"):  # first block in function
-                number = "0"  # block.split("=")[0].strip()[1:]
-                # if(not number.isnumeric()):
-                #    print("failed parsing control flow of blocks: block virtual address of first block in function is not numeric.")
-                #    return
-                # else:
-                label = str(int(number))+":"
-            # if(block[0].isnumeric()):  # second or laterblock with given label.
-            else:
-                label = block.split(":")[0]+":"
-            searchtxt = block[block.find("preds = ")+8:]
-            # print("\n\n\n\n"+searchtxt)
-            args = searchtxt.split(" ")
-            for arg in args:
-                if(not arg):
-                    break
-                if(arg[0] == "%"):
-                    predlabel = arg[1:]
-                    if(arg[-1] == ","):
-                        predlabel = predlabel[:-1]
-                    predlabel = predlabel+":"
-                    preds.append(predlabel)
-                    if(arg[-1] != ","):
-                        break
-                else:
-                    break
+
+        # search block label in the first line
+        block_first_line = block.split("\n", 1)[0]
+        m = re.search("^([\w_]+):", block_first_line)
+        if m:
+            label = m.group(1) + ":"
+
+            # get list of preds
+            match = re.search("preds *= *([%\w, ]+)+", block_first_line)
+            if match:
+                preds_str = match.group(1)
+                pred_pattern = re.compile('%([\w]+),{0,1}')
+                preds_set = set()
+                for match in pred_pattern.finditer(preds_str):
+                    preds_set.add(match.group(1) + ':')
+                preds = list(preds_set)
+        else:  # if did not find, search for first VREG declaration and
+               # make a block label as VREG - 1 or
+               # ":0" if no VREGs in this block.
+               # Using ":0" in this case is not completely correct,
+               # actual value should be a vreg of the last function arg + 1.
+               # there is no function arg list in this function, so use the ":0"
+            m = re.search("^ *%(\d+) *=", block, re.MULTILINE)
+            label = str(int(m.group(1)) - 1) + ":" if m else "0:"
+
         return (label, preds)
 
 
@@ -723,9 +673,22 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='Generate datalog facts from LLVM-IR files.')
     argparser.add_argument('input', help='path to the LLVM-IR .ll file')
     argparser.add_argument('-o', action='store', dest='output_dir', default="facts", help='specify facts directory')
+    argparser.add_argument('--verbose', '-v', action='count', help='Increase output verbosity')
     args = argparser.parse_args()
-    FACTS_DIR = args.output_dir
 
-    parser = Parser(args.input)
+    log_fmt = '%(message)s'
+    if not args.verbose:
+        log_level = logging.ERROR
+    elif args.verbose == 1:
+        log_level = logging.WARNING
+    elif args.verbose == 2:
+        log_level = logging.INFO
+    elif args.verbose > 2:
+        log_fmt = '| %(funcName)32s:%(lineno)-4d| %(levelname)-7s| %(message)s'
+        log_level = logging.DEBUG
+
+    logging.basicConfig(format=log_fmt, level=logging.NOTSET)
+
+    parser = Parser(args.input, log_level)
     parser.parse()
-    parser.printOutput()
+    parser.printOutput(args.output_dir)
