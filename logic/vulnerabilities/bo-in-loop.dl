@@ -9,7 +9,10 @@ bo_in_loops(IID, LEVEL, MESSAGE) :-
 
 
 // detect out of bounds array access of index, which is loop variable e.g. arr[i]
-.decl oob_array_access_in_loop(instructionid: _instructionid, level: symbol, message: symbol)
+.decl oob_array_access_in_loop(instructionid: _instructionid,
+                               level: symbol,
+                               message: symbol)
+.output oob_array_access_in_loop(delimiter=",")
 
 // case head-controlled <x boundary
 oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
@@ -47,7 +50,8 @@ oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
     ARRAYSIZE > 2,
     LEVEL = "Vulnerability",
     MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",
-                  to_string(MAXBOUNDARY), " and array size: ", to_string(ARRAYSIZE),".").
+                  to_string(MAXBOUNDARY), " and array size: ",
+                  to_string(ARRAYSIZE),".").
 
 // case head-controlled <=x boundary
 oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
@@ -85,12 +89,15 @@ oob_array_access_in_loop(IID, LEVEL, MESSAGE) :-
     IID = GEPIID,
 
     LEVEL = "Vulnerability",
-    MESSAGE = cat("Array access within a loop with the loop variable [arr[i]] is out of bounds for i=",
-                  to_string(MAXBOUNDARY), " and array size: ", to_string(ARRAYSIZE),".").
+    MESSAGE = cat("Array access within a loop with the loop variable ",
+                  "[arr[i]] is out of bounds for i=",
+                  to_string(MAXBOUNDARY), " and array size: ",
+                  to_string(ARRAYSIZE),".").
 
 
 // detect duplicate variable increase
-.decl is_loop_with_duplicate_increase(loopConditionInstruction: _instructionid, level: symbol, message: symbol)
+.decl is_loop_with_duplicate_increase(loopConditionInstruction: _instructionid,
+                                      level: symbol, message: symbol)
 //.output is_loop_with_duplicate_increase(delimiter=",")
 
 // case head-controlled

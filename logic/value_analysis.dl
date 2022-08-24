@@ -1,7 +1,6 @@
 // maximum depth of value analysis
 #define VA_MAXDEPTH 10
 
-
 // get possible integer values (wrapper, which supports constants as vreg)
 .decl get_int_by_vreg(value: number, functionid: _functionid, _vreg: symbol)
 .output get_int_by_vreg(delimiter=",")
@@ -138,40 +137,15 @@ get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
 get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
     anumber(DEPTH),
     DEPTH < VA_MAXDEPTH,
-    get_third_operand(IID, OV3),
     block(FID, BID, _),
     instruction(BID, IID, VREG, OPC),
+    get_third_operand(IID, OV3),
     OPC = "load",
     !is_numeric(OV3),
     is_instruction_before_other(IID, IID2), // IID2 is before IID
     get_int_by_vreg_internal(VAL, FID, OV3, IID2, DEPTH+1).
 
 // speculative cases:
-
-// case memequals
-//get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
-//    anumber(DEPTH),
-//    DEPTH < VA_MAXDEPTH,
-//    block(FID, BID, _),
-//    instruction(BID, _, VREG, _),
-//    instruction(BID, IID, START_LOC, _),
-//    memequals(FID, START_LOC, FID2, END_LOC),
-//    START_LOC = VREG,
-//    //is_instruction_before_other(IID, IID2), // IID2 is before IID
-//    //get_int_by_vreg_internal(VAL, FID2, END_LOC, IID2, DEPTH+1).
-//    get_int_by_vreg_internal(VAL, FID2, END_LOC, _, DEPTH+1).
-
-// case memequals oneway
-//get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
-//    anumber(DEPTH),
-//    DEPTH < VA_MAXDEPTH,
-//    block(FID, BID, _),
-//    instruction(BID, _, VREG, _),
-//    instruction(BID, IID, START_LOC, _),
-//    memequals_oneway(FID, START_LOC, FID2, END_LOC),
-//    START_LOC = VREG,
-//    is_instruction_before_other(IID, IID2), // IID2 is before IID
-//    get_int_by_vreg_internal(VAL, FID2, END_LOC, IID2, DEPTH+1).
 
 // case call strlen (Maximum)
 get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
@@ -219,6 +193,66 @@ get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
 // get core cases
 get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
     get_int_by_vreg_internal_core(VAL, FID, VREG, IID, DEPTH).
+
+// get memequals cases
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    get_int_by_vreg_internal_memequals(VAL, FID, VREG, IID, DEPTH).
+
+
+.decl get_int_by_vreg_internal_memequals(value: number,
+                                        functionid: _functionid,
+                                        vreg: symbol,
+                                        iidsetvalue: _instructionid,
+                                        depth: number)
+.output get_int_by_vreg_internal_memequals(delimiter=",")
+
+// case memequals
+get_int_by_vreg_internal_memequals(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    block(FID, BID, _),
+    instruction(BID, _, VREG, _),
+    instruction(BID, IID, START_LOC, _),
+    memequals(FID, START_LOC, FID2, END_LOC),
+    START_LOC = VREG,
+    FID != FID2,
+    get_int_by_vreg_internal(VAL, FID2, END_LOC, _, DEPTH+1).
+
+get_int_by_vreg_internal_memequals(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    block(FID, BID, _),
+    instruction(BID, _, VREG, _),
+    instruction(BID, IID, START_LOC, _),
+    memequals(FID, START_LOC, FID2, END_LOC),
+    START_LOC = VREG,
+    FID = FID2,
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(VAL, FID2, END_LOC, IID2, DEPTH+1).
+
+// case memequals oneway
+get_int_by_vreg_internal_memequals(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    block(FID, BID, _),
+    instruction(BID, _, VREG, _),
+    instruction(BID, IID, START_LOC, _),
+    memequals_oneway(FID, START_LOC, FID2, END_LOC),
+    START_LOC = VREG,
+    FID != FID2,
+    get_int_by_vreg_internal(VAL, FID2, END_LOC, _, DEPTH+1).
+
+get_int_by_vreg_internal_memequals(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    block(FID, BID, _),
+    instruction(BID, _, VREG, _),
+    instruction(BID, IID, START_LOC, _),
+    memequals_oneway(FID, START_LOC, FID2, END_LOC),
+    START_LOC = VREG,
+    FID = FID2,
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(VAL, FID2, END_LOC, IID2, DEPTH+1).
 
 
 // core includes all non-recursive cases, that can be directly identified

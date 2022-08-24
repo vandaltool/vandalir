@@ -1,4 +1,5 @@
 //control flow edges of CFG
+
 .decl edge(functionid: _functionid, startblock: _blockid, endblock: _blockid)
 //.output edge(delimiter=",")
 
@@ -157,6 +158,7 @@ get_callee_block(FID, BID, CFID, CBID) :-
                                    start_blockid: _blockid,
                                    previous_functionid: _functionid,
                                    previous_blockid: _blockid)
+//.output get_previous_or_caller_block(delimiter=",")
 
 //case previous block within function
 get_previous_or_caller_block(FID, BID, PFID, PBID) :-
@@ -197,6 +199,7 @@ get_next_or_called_block(FID, BID, NFID, NBID) :-
                 blockid: _blockid,
                 before_functionid: _functionid,
                 before_blockid: _blockid)
+//.output is_before(delimiter=",")
 
 //direct before
 is_before(FID, BID, BFID, BBID) :-
@@ -246,6 +249,7 @@ is_instruction_behind_other_within_block(IID, IID_BEHIND) :-
 
 .decl is_instruction_before_other(instructionid: _instructionid,
                                   instructionid_before: _instructionid)
+//.output is_instruction_before_other(delimiter=",")
 
 //case instructions in same basic block
 is_instruction_before_other(IID, IID_BEFORE) :-

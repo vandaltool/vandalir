@@ -55,7 +55,7 @@ opval(T) :-
 
 .decl predecessor(functionid: _functionid,
                   label: _label,
-                  predecessor: symbol)
+                  predecessor: _label)
 .input predecessor(delimiter=";")
 
 
