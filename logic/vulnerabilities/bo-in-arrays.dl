@@ -49,7 +49,7 @@ gep_index_too_small(IID, LEVEL, MESSAGE) :-
 //check if upper bound size check exists
 .decl check_big(functionid: _functionid, blockid: _blockid, vreg: symbol)
 check_big(FID, BID, INDEX2VREG) :-
-    block(FID, FIRSTBLOCK, "0:"),
+    FIRSTBLOCK = min BFID: block(FID, BFID, _),
     blockInDownwardPath(FID, FIRSTBLOCK, BID, BLOCK),
     check_big_instruction(BLOCK, _, INDEX2VREG).
 
@@ -57,7 +57,7 @@ check_big(FID, BID, INDEX2VREG) :-
 //check if lower bound size check exists
 .decl check_small(functionid: _functionid, blockid: _blockid, vreg: symbol)
 check_small(FID, BID, INDEX2VREG) :-
-    block(FID, FIRSTBLOCK, "0:"),
+    FIRSTBLOCK = min BFID: block(FID, BFID, _),
     blockInDownwardPath(FID, FIRSTBLOCK, BID, BLOCK),
     check_small_instruction(BLOCK, _, INDEX2VREG).
 
