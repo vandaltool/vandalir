@@ -380,7 +380,7 @@ is_store_instruction(IID) :-
 .decl get_store_pointer_by_iid(functionid: _functionid,
                                location: symbol,
                                instructionid: _instructionid)
-//.output get_store_pointer_by_iid
+//.output get_store_pointer_by_iid(delimeter=",")
 
 //case vreg
 get_store_pointer_by_iid(FID, VAL, IID) :-
@@ -402,7 +402,7 @@ get_store_pointer_by_iid(FID, VAL, IID) :-
 .decl get_store_value_by_iid(functionid: _functionid,
                              value: symbol,
                              instructionid: _instructionid)
-//.output get_store_value_by_iid
+//.output get_store_value_by_iid(delimeter=",")
 
 //case vreg is stored
 get_store_value_by_iid(FID, VAL, IID) :-

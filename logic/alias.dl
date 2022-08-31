@@ -1,6 +1,6 @@
 //find equal memory location (alias analysis)
 .decl memequals(functionid1: _functionid, memlocation1: symbol,
-functionid2: _functionid, memlocation2: symbol)
+                functionid2: _functionid, memlocation2: symbol)
 .output memequals(delimiter=",")
 
 //case: (a <==> b) ==> (b <==> a)
@@ -18,6 +18,7 @@ memequals(FID1, LOC1, FID2, LOC2) :-
 
 .decl memequals_transitivity(functionid1: _functionid, memlocation1: symbol,
                              functionid2: _functionid, memlocation2: symbol)
+//.output memequals_transitivity
 
 //case: [(a <==> x) && (x <==> b)] ==> (a <==> b)
 memequals_transitivity(FID1, LOC1, FID2, LOC2) :-
@@ -31,6 +32,7 @@ memequals_transitivity(FID1, LOC1, FID2, LOC2) :-
 
 .decl memequals_core(functionid1: _functionid, memlocation1: symbol,
                      functionid2: _functionid, memlocation2: symbol)
+//.output memequals_core(delimeter=",")
 
 //case load: (x = *a) && (a->b) ==> (x <==> b)
 memequals_core(FID1, X, FID2, B) :-
@@ -42,11 +44,12 @@ memequals_core(FID1, X, FID2, B) :-
     points_to(FID1, A, FID2, B),
     memlocation(FID2, B, _, _).
 
+// TODO(dmitryy) do not understand needs of this branch, looks too wide.
 //case points-to: (a -> x && b -> x) ==> (a <==> b)
 //introduces false positives due to points-to SETS
-memequals_core(FID1, LOC1, FID2, LOC2) :-
-    points_to(FID1, LOC1, FIDX, LOCX),
-    points_to(FID2, LOC2, FIDX, LOCX).
+memequals_core(FID_A, LOC_A, FID_B, LOC_B) :-
+    points_to(FID_A, LOC_A, FID_X, LOC_X),
+    points_to(FID_B, LOC_B, FID_X, LOC_X).
 
 //case conversion instruction
 memequals_core(FID1, LOC1, FID2, LOC2) :-
@@ -149,9 +152,10 @@ memequals_oneway(FID1, LOC1, FID2, LOC2) :-
 
 //help relations
 
-//wrapper around get_gep_concatenated_memloc_str, that sets correct level and removes useless results
+//wrapper around get_gep_concatenated_memloc_str, that sets correct level and
+// removes useless results
 .decl gep_str(instructionid: _instructionid, result: symbol)
-//.output gep_str
+//.output gep_str(delimiter=",")
 
 //case depth = 1 ==> keep leading zero index
 gep_str(IID, RES) :-
@@ -196,7 +200,9 @@ gep_str(IID, RESULT) :-
     RESULT = cat(BASEREGISTER, ".", NEWINDICES).
 
 
-.decl get_gep_concatenated_memloc_str(instructionid: _instructionid, level: number, result: symbol)
+.decl get_gep_concatenated_memloc_str(instructionid: _instructionid,
+                                      level: number,
+                                      result: symbol)
 //.output get_gep_concatenated_memloc_str
 
 get_gep_concatenated_memloc_str(IID, LEVEL, RES) :-
@@ -277,8 +283,11 @@ get_call_argument_and_function_register(IID, CFID, CARG, FID, VREG, ARGTYPE) :-
     is_vreg(CARG).
 
 
-.decl get_ith_argument_register(functionid: _functionid, i:number, argid:_argumentid,
-                                argument: _vreg, argumenttype: symbol)
+.decl get_ith_argument_register(functionid: _functionid,
+                                i:number,
+                                argid:_argumentid,
+                                argument: _vreg,
+                                argumenttype: symbol)
 //.output get_ith_argument_register(delimiter=",")
 
 get_ith_argument_register(FID, I, ARGID, VREG, ARGTYPE) :-
@@ -293,7 +302,9 @@ get_ith_argument_register(FID, I, ARGID, VREG, ARGTYPE) :-
     get_ith_argument_register(FID, I2, ARGID-1, _, _).
 
 
-.decl get_ith_call_argument(instructionid: _instructionid, i:number, val: symbol)
+.decl get_ith_call_argument(instructionid: _instructionid,
+                            i:number,
+                            val: symbol)
 //.output get_ith_call_argument(delimiter=",")
 
 get_ith_call_argument(IID, I, VAL) :-
