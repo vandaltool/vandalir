@@ -195,8 +195,7 @@ get_buffsize_by_vreg(VAL, FID, VREG) :-
 
 // case memequals
 get_buffsize_by_vreg(VAL, FID, VREG) :-
-    block(FID, BID, _),
-    instruction(BID, _, VREG, _),
+    block(FID, _, _),
     memequals(FID, START_LOC, END_FID, END_LOC),
     START_LOC = VREG,
     get_buffsize_by_vreg(VAL, END_FID, END_LOC).
