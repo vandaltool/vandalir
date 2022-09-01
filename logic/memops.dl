@@ -123,6 +123,7 @@ get_buffsize_by_vreg(VAL, FID, VREG) :-
     block(FID, BID, _),
     instruction(BID, IID, VREG, OPC),
     OPC = "alloca",
+    array(IID, _, _, _, VREG),
     get_size_of_alloca(IID, VAL),
     get_first_operand(IID, ALLOCATYPE),
     !is_pointer(ALLOCATYPE),

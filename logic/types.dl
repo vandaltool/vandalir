@@ -9,6 +9,7 @@
 .type _label <: symbol
 .type _vreg <: symbol
 .type _memcategory <: symbol
+.type _arrayid <: number
 
 
 .decl type(type: symbol)
@@ -101,3 +102,10 @@ opval(T) :-
 //this contains all numbers 0-100k, used for enumerations
 .decl anumber(number: number)
 .input anumber(delimiter=";")
+
+.decl array(instructionid: _instructionid,
+            arrayid: _arrayid,
+            type: symbol,
+            size: number,
+            vreg: symbol)
+.input array(delimiter=";")
