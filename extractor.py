@@ -1,4 +1,5 @@
 from llvmlite.binding import parse_assembly, parse_bitcode
+from functools import reduce
 import logging
 from itertools import chain
 import argparse
@@ -59,6 +60,7 @@ class Parser:
         self.argumentid = 0
         self.blockid = 0
         self.instructionid = 0
+        self.arrayid = 0
         self.operandid = 0
 
         self.allocaVregs = list()
@@ -74,6 +76,7 @@ class Parser:
             "predecessor": list(),
             "global": list(),
             "struct": list(),
+            "array": list(),
             "structoperand": list()
         }
         self.log = logging.getLogger('[EXTRACTOR]')
@@ -287,9 +290,12 @@ class Parser:
             self.operandid += 1
 
     def parseAllocaInstruction(self, fullInstruction):
-        start = fullInstruction.find("alloca ")+7
-        end = fullInstruction.rfind(", align")
-        allocaType = fullInstruction[start:end]
+        match = re.search("\ *([^ ,]*)\ *=\ *alloca\ *(.*),\ *align", fullInstruction)
+        if not match:
+            return
+
+        allocaType = match.group(2)
+        vreg = match.group(1)
 
         r = re.compile(r'(?:[^,(]|\([^)]*\))+')
         allocaTypeSplit = r.findall(allocaType)
@@ -297,14 +303,34 @@ class Parser:
         if(len(allocaTypeSplit) == 2):
             allocaTypeTemp = allocaTypeSplit[1].strip().rsplit(" ", 1)
             if(len(allocaTypeTemp) == 2):
-                allocaType = "["+allocaTypeTemp[1]+" x "+allocaTypeTemp[0]+"]"
+                if int(allocaTypeTemp[1]) > 1:
+                    allocaType = "["+allocaTypeTemp[1]+" x "+allocaTypeSplit[0]+"]"
+                else:
+                    allocaType = allocaTypeSplit[0]
 
+        allocaType_str = allocaType
         (allocaType, arraySize) = self.parseType(allocaType, mode=1)
+        arraySizes = arraySize.split("x")
+
+        if "[" in allocaType_str:
+            if len(arraySizes) > 1:
+                size = reduce(lambda x, y: int(x)*int(y), arraySizes)
+            else:
+                size = int(arraySizes[0])
+
+            array_str = ("array("
+                          + str(self.instructionid) + ";"
+                          + str(self.arrayid) + ";"
+                          + str(allocaType) + ";"
+                          + str(size) + ";"
+                          + vreg
+                          + ")")
+            self.arrayid += 1
+            self.output(array_str)
 
         operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";"+allocaType+")"
         self.output(operand_str)
         self.operandid += 1
-        arraySizes = arraySize.split("x")
         for arraySize in arraySizes:
             operand_str = "operand("+str(self.instructionid)+";"+str(self.operandid)+";"+arraySize+")"
             self.output(operand_str)
