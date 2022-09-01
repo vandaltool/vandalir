@@ -118,6 +118,115 @@ get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
     get_int_by_vreg_internal(TMP, FID, OV2, IID2, DEPTH+1),
     VAL=to_number(OV1)-TMP.
 
+// case xor: VREG ^ VREG
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "xor"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_vreg(OV1),
+    is_vreg(OV2),
+    is_instruction_before_other(IID, IID1), // IID1 is before IID
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(TMP1, FID, OV1, IID1, DEPTH+1),
+    get_int_by_vreg_internal(TMP2, FID, OV2, IID2, DEPTH+1),
+    VAL=TMP1 bxor TMP2.
+
+// case xor: VREG ^ INT
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "xor"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_vreg(OV1),
+    is_numeric(OV2),
+    is_instruction_before_other(IID, IID1), // IID1 is before IID
+    get_int_by_vreg_internal(TMP1, FID, OV1, IID1, DEPTH+1),
+    VAL=TMP1 bxor to_number(OV2).
+
+// case xor: INT ^ VREG
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "xor"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_numeric(OV1),
+    is_vreg(OV2),
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(TMP2, FID, OV2, IID2, DEPTH+1),
+    VAL=to_number(OV1) bxor TMP2.
+
+// TODO add support vector as arg
+// case shl: INT << INT
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "shl"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_numeric(OV1),
+    is_numeric(OV2),
+    VAL=to_number(OV1) bshl to_number(OV2).
+
+// case shl: VREG << INT
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "shl"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_vreg(OV1),
+    is_numeric(OV2),
+    is_instruction_before_other(IID, IID1), // IID1 is before IID
+    get_int_by_vreg_internal(TMP2, FID, OV1, IID1, DEPTH+1),
+    VAL=TMP2 bshl to_number(OV2).
+
+// case shl: INT << VREG
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "shl"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_numeric(OV1),
+    is_vreg(OV2),
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(TMP2, FID, OV2, IID2, DEPTH+1),
+    VAL=to_number(OV1) bshl TMP2.
+
+// case shl: VREG << VREG
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    !is_numeric(VREG),
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "shl"),
+    get_first_operand(IID, OV1),
+    get_second_operand(IID, OV2),
+    is_vreg(OV1),
+    is_vreg(OV2),
+    is_instruction_before_other(IID, IID1), // IID1 is before IID
+    is_instruction_before_other(IID, IID2), // IID2 is before IID
+    get_int_by_vreg_internal(TMP1, FID, OV1, IID1, DEPTH+1),
+    get_int_by_vreg_internal(TMP2, FID, OV2, IID2, DEPTH+1),
+    VAL=TMP1 bshl TMP2.
+
+
 // case store: VREG (int) -> VREG
 get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
     anumber(DEPTH),
@@ -144,6 +253,18 @@ get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
     !is_numeric(OV3),
     is_instruction_before_other(IID, IID2), // IID2 is before IID
     get_int_by_vreg_internal(VAL, FID, OV3, IID2, DEPTH+1).
+
+get_int_by_vreg_internal(VAL, FID, VREG, IID, DEPTH) :-
+    anumber(DEPTH),
+    DEPTH < VA_MAXDEPTH,
+    block(FID, BID, _),
+    instruction(BID, IID, VREG, "phi"),
+    is_even(I),
+    get_ith_operand(IID, I, LOC2),
+    get_num_operands(IID, OPCOUNT),
+    I<=OPCOUNT,
+    is_vreg(LOC2),
+    get_int_by_vreg_internal(VAL, FID, LOC2, _, DEPTH+1).
 
 // speculative cases:
 
