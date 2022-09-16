@@ -2,25 +2,33 @@
 
 //input configuration
 
-.decl configuration(name: symbol, value: number)
+.decl configuration(name: symbol, value: symbol)
 .input configuration(delimiter=";")
 
 //is library mode enabled
 .decl Config_LibraryMode(enabled: number)
 Config_LibraryMode(NUM) :-
-    configuration("libraryMode", NUM).
+    is_numeric(VAL),
+    NUM=to_number(VAL),
+    configuration("libraryMode", VAL).
 
 //show Vulnerabilities
 .decl Config_ShowVulnerabilities(enabled: number)
 Config_ShowVulnerabilities(NUM) :-
-    configuration("showVulnerabilities", NUM).
+    is_numeric(VAL),
+    NUM=to_number(VAL),
+    configuration("showVulnerabilities", VAL).
 
 //show Warnings
 .decl Config_ShowWarnings(enabled: number)
 Config_ShowWarnings(NUM) :-
-    configuration("showWarnings", NUM).
+    is_numeric(VAL),
+    NUM=to_number(VAL),
+    configuration("showWarnings", VAL).
 
 //deep Alias
 .decl Config_deepAlias(enabled: number)
 Config_deepAlias(NUM) :-
-    configuration("deepAlias", NUM).
+    is_numeric(VAL),
+    NUM=to_number(VAL),
+    configuration("deepAlias", VAL).
